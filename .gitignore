@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+
+# Workspace packages
+backend/dist/
+backend/node_modules/
+frontend/dist/
+frontend/node_modules/
+tests/load/reports/
+tests/setup/runtime.json
+tests/node_modules/
+
+# K8s secrets (use secret.example.yaml as template)
+deploy/kubernetes/secret.yaml

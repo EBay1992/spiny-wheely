@@ -1,0 +1,46 @@
+{
+  "name": "spiny-wheely",
+  "version": "0.1.0",
+  "description": "spinyWheely iGaming monorepo",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend",
+    "tests"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green --kill-others-on-fail \"npm run dev -w @spiny-wheely/backend\" \"wait-on http://127.0.0.1:3000/health -t 60000 && npm run dev -w @spiny-wheely/frontend\"",
+    "dev:api": "npm run dev -w @spiny-wheely/backend",
+    "dev:web": "npm run dev -w @spiny-wheely/frontend",
+    "build": "npm run build -w @spiny-wheely/backend && npm run build -w @spiny-wheely/frontend",
+    "build:api": "npm run build -w @spiny-wheely/backend",
+    "build:web": "npm run build -w @spiny-wheely/frontend",
+    "start:api": "npm run start:prod -w @spiny-wheely/backend",
+    "migration:run": "npm run migration:run -w @spiny-wheely/backend",
+    "migration:revert": "npm run migration:revert -w @spiny-wheely/backend",
+    "migration:generate": "npm run migration:generate -w @spiny-wheely/backend",
+    "demo": "node scripts/demo-flow.mjs",
+    "test": "npm run test -w @spiny-wheely/tests",
+    "test:unit": "npm run test:unit -w @spiny-wheely/tests",
+    "test:api": "npm run test:api -w @spiny-wheely/tests",
+    "test:e2e": "npm run test:e2e -w @spiny-wheely/tests",
+    "test:integration": "npm run test:integration -w @spiny-wheely/tests",
+    "test:load": "npm run test:load -w @spiny-wheely/tests",
+    "test:load:smoke": "npm run test:load:smoke -w @spiny-wheely/tests",
+    "test:load:heavy": "npm run test:load:heavy -w @spiny-wheely/tests",
+    "test:load:seed": "npm run test:load:seed -w @spiny-wheely/tests",
+    "scale:up": "docker compose -f docker-compose.yml -f docker-compose.scale.yml up -d --build --scale api=3",
+    "scale:down": "docker compose -f docker-compose.yml -f docker-compose.scale.yml down",
+    "scale:migrate": "docker compose -f docker-compose.yml -f docker-compose.scale.yml --profile migrate run --rm migrate",
+    "scale:verify": "node scripts/scale-poc.mjs http://localhost:8080 50",
+    "k8s:deploy": "bash scripts/k8s-deploy.sh"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "socket.io-client": "^4.8.3",
+    "wait-on": "^8.0.5"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
