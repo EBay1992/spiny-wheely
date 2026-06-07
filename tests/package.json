@@ -1,0 +1,27 @@
+{
+  "name": "@spiny-wheely/tests",
+  "version": "0.1.0",
+  "private": true,
+  "description": "spinyWheely test suite — unit, API, e2e, load",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run unit",
+    "test:api": "vitest run api",
+    "test:e2e": "vitest run e2e",
+    "test:integration": "vitest run api e2e",
+    "test:load": "node load/run-load.mjs",
+    "test:load:smoke": "LOAD_CONCURRENCY=20 LOAD_WHEEL_WORKERS=10 LOAD_DURATION_SEC=5 LOAD_WARMUP_SEC=1 node load/run-load.mjs",
+    "test:load:heavy": "LOAD_CONCURRENCY=200 LOAD_WHEEL_WORKERS=80 LOAD_DURATION_SEC=60 LOAD_WARMUP_SEC=5 node load/run-load.mjs",
+    "test:load:seed": "node load/seed-players.mjs",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.3"
+  }
+}
