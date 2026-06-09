@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: api-migrate
+  namespace: spinywheely
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: migrate
+          image: spinywheely-api:latest
+          imagePullPolicy: IfNotPresent
+          command: ["node", "backend/dist/database/run-migrations.js"]
+          envFrom:
+            - configMapRef:
+                name: spinywheely-config
+          env:
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: spinywheely-secrets
+                  key: DATABASE_PASSWORD
