@@ -1,5 +1,9 @@
 import 'reflect-metadata';
+import { config } from 'dotenv';
+import { resolve } from 'path';
 import { DataSource } from 'typeorm';
+
+config({ path: resolve(__dirname, '../../.env') });
 import { BetSession } from './entities/bet-session.entity';
 import { GameConfiguration } from './entities/game-configuration.entity';
 import { User } from './entities/user.entity';
