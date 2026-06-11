@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npx --yes -p typescript@6.0.2 -p vite@8.0.12 tsc -b && npx --yes -p vite@8.0.12 vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
