@@ -24,6 +24,8 @@ import {
   SuccessText,
 } from '../../shared/components/DashboardStyles';
 
+const SUPPORTED_GAMES = new Set(['WHEEL']);
+
 function toDateInputValue(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
@@ -56,7 +58,9 @@ export function AdminDashboard() {
   }, [startDate, endDate]);
 
   const loadConfigs = useCallback(async () => {
-    const data = await getGameConfigurations();
+    const data = (await getGameConfigurations()).filter((config) =>
+      SUPPORTED_GAMES.has(config.gameType),
+    );
     setConfigs(data);
     const nextDrafts: Record<string, ConfigDraft> = {};
     for (const config of data) {
