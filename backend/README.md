@@ -28,6 +28,8 @@ API: http://localhost:3000
 Health: http://localhost:3000/health  
 Wheel WS: `ws://localhost:3000/wheel`
 
+**Demo players** (migration-seeded, $5,000 balance): `player@spinywheely.test` / `demo@spinywheely.test` — password `player123`
+
 ## Environment
 
 Copy `.env.example` → `.env` in this directory.
@@ -69,6 +71,7 @@ src/
 |--------|------|------|-------------|
 | `POST` | `/player/auth/login` | — | Returns JWT |
 | `GET` | `/player/profile` | Player JWT | Balance, currency, limits |
+| `GET` | `/player/game-info` | Player JWT | Read-only wheel RTP, volatility, limits |
 | `GET` | `/player/wager-history` | Player JWT | Paginated bet history |
 
 ### Admin (`/admin`)

@@ -34,14 +34,18 @@ flowchart TB
   WS --> RD
 ```
 
+
+
 Full diagrams (sequence flows, module map, scaling): **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
 
-| Package | Docs |
-|---------|------|
-| Backend API | [backend/README.md](backend/README.md) |
+
+| Package       | Docs                                     |
+| ------------- | ---------------------------------------- |
+| Backend API   | [backend/README.md](backend/README.md)   |
 | Player client | [frontend/README.md](frontend/README.md) |
-| Tests | [tests/README.md](tests/README.md) |
-| Scaling / K8s | [deploy/SCALING.md](deploy/SCALING.md) |
+| Tests         | [tests/README.md](tests/README.md)       |
+| Scaling / K8s | [deploy/SCALING.md](deploy/SCALING.md)   |
+
 
 ## Repository layout
 
@@ -66,27 +70,39 @@ npm run migration:run
 npm run dev
 ```
 
-| Service | URL |
-|---------|-----|
-| Client | http://localhost:5173 |
-| API | http://localhost:3000 |
-| Wheel WS | ws://localhost:3000/wheel |
+
+| Service  | URL                                            |
+| -------- | ---------------------------------------------- |
+| Client   | [http://localhost:5173](http://localhost:5173) |
+| API      | [http://localhost:3000](http://localhost:3000) |
+| Wheel WS | ws://localhost:3000/wheel                      |
+
 
 ## Test accounts
 
-| Role | Email | Password |
-|------|-------|----------|
-| Player | `player@spinywheely.test` | `player123` |
-| Operator | `admin@spinywheely.test` | `admin123` |
+Seeded by migrations (`npm run migration:run`) in **development and production**.
+
+
+| Role        | Email                     | Password    | Starting balance |
+| ----------- | ------------------------- | ----------- | ---------------- |
+| Player      | `player@spinywheely.test` | `player123` | **$5,000**       |
+| Demo player | `demo@spinywheely.test`   | `player123` | **$5,000**       |
+| Operator    | `admin@spinywheely.test`  | `admin123`  | —                |
+
+
+> For a real production deployment, rotate or remove demo credentials after go-live.
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Backend + frontend |
-| `npm run build` | Build both packages |
-| `npm run migration:run` | Database migrations |
-| `npm run test` | Full test suite |
-| `npm run test:load:heavy` | Load / stress test |
-| `npm run scale:up` | 3 API replicas + nginx on :8080 |
-| `npm run k8s:deploy` | Deploy to Kubernetes |
+
+| Command                   | Description                     |
+| ------------------------- | ------------------------------- |
+| `npm run dev`             | Backend + frontend              |
+| `npm run build`           | Build both packages             |
+| `npm run migration:run`   | Database migrations             |
+| `npm run test`            | Full test suite                 |
+| `npm run test:load:heavy` | Load / stress test              |
+| `npm run scale:up`        | 3 API replicas + nginx on :8080 |
+| `npm run k8s:deploy`      | Deploy to Kubernetes            |
+
+

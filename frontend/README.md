@@ -32,6 +32,15 @@ npm run dev:web
 
 Client: http://localhost:5173
 
+## Routes
+
+| Path | Role | Description |
+|------|------|-------------|
+| `/login` | — | Player or operator sign-in |
+| `/play` | Player | Wheel game |
+| `/dashboard` | Player | Account, game info, preferences, wager history |
+| `/admin` | Operator | Platform metrics and game configuration |
+
 ## Environment
 
 Copy `.env.example` → `.env` in this directory.
@@ -63,7 +72,11 @@ src/
 │       └── playerStore.ts    # balance, wager, round state
 ├── shared/styles/
 ├── assets/                   # Wheel ring images, backgrounds
-├── App.tsx                   # Bootstrap: health → login → socket
+├── app/AppRouter.tsx         # Routes and auth guards
+├── features/auth/            # Login page
+├── features/player/          # Player dashboard
+├── features/admin/           # Operator console
+├── App.tsx
 └── main.tsx
 ```
 
