@@ -20,9 +20,11 @@ From the **monorepo root**:
 docker compose up -d
 npm install
 cp backend/.env.example backend/.env
-npm run migration:run
+npm run migration:run   # uses src/database/run-migrations.ts
 npm run dev:api
 ```
+
+**Operator login** (frontend): use the **Operator** tab at `/login` with `admin@spinywheely.test` / `admin123`.
 
 API: http://localhost:3000  
 Health: http://localhost:3000/health  

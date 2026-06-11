@@ -63,12 +63,14 @@ spiny-wheely/
 ## Quick start
 
 ```bash
-docker compose up -d
+docker compose up -d          # PostgreSQL + Redis
 npm install
 cp backend/.env.example backend/.env
-npm run migration:run
-npm run dev
+npm run migration:run         # seed users, wallets, game config
+npm run dev                   # API :3000 + client :5173
 ```
+
+> **Operator login:** open [http://localhost:5173/login](http://localhost:5173/login), choose the **Operator** tab, then sign in with `admin@spinywheely.test` / `admin123`. Admin credentials do not work on the Player tab.
 
 
 | Service  | URL                                            |
