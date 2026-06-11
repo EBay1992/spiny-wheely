@@ -14,8 +14,8 @@ services:
     plan: free
     region: oregon
     buildCommand: npm ci && npm run build -w @spiny-wheely/backend
-    startCommand: npm run start:prod -w @spiny-wheely/backend
-    preDeployCommand: npm run migration:run -w @spiny-wheely/backend
+    # Free tier has no preDeployCommand — migrate on each container start
+    startCommand: npm run migration:run -w @spiny-wheely/backend && npm run start:prod -w @spiny-wheely/backend
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
