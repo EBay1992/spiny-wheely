@@ -5,6 +5,10 @@ import { FeatureContainer, Title } from './components/WheelStyles';
 import { getPlayerProfile } from '../../core/network/api';
 import { usePlayerStore } from '../../core/store/playerStore';
 import { wheelSocket } from '../../core/network/socket';
+import {
+  formatWagerError,
+  validateWager,
+} from '../../shared/utils/wager-validation';
 import type { SpinPathStep, SpinResult, WheelTier } from './types';
 
 const TIER_LABEL: Record<WheelTier, string> = {
@@ -13,9 +17,14 @@ const TIER_LABEL: Record<WheelTier, string> = {
   big: 'Tier 3',
 };
 
-function nextRotation(current: number, targetDeg: number, extraTurns = 5): number {
+function nextRotation(
+  current: number,
+  targetDeg: number,
+  extraTurns = 6,
+): number {
+  const normalized = ((current % 360) + 360) % 360;
   const baseRotation = 360 * extraTurns;
-  return current + baseRotation + (360 - targetDeg) - (current % 360);
+  return current + baseRotation + (360 - targetDeg) - normalized;
 }
 
 export const WheelFeature: React.FC = () => {
@@ -38,6 +47,7 @@ export const WheelFeature: React.FC = () => {
   const [bigRotation, setBigRotation] = useState<number>(0);
   const [activeWheel, setActiveWheel] = useState<WheelTier>('small');
   const [roundStatus, setRoundStatus] = useState<string>('Ready to spin');
+  const [statusIsError, setStatusIsError] = useState(false);
   const [isTurbo, setIsTurbo] = useState<boolean>(false);
 
   const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -53,23 +63,30 @@ export const WheelFeature: React.FC = () => {
     animationTimeoutsRef.current.push(timeout);
   };
 
-  const spinWheel = (step: SpinPathStep) => {
+  const spinWheel = (step: SpinPathStep, extraTurns: number) => {
     if (step.wheel === 'small') {
-      setInnerRotation((current) => nextRotation(current, step.targetDeg));
+      setInnerRotation((current) =>
+        nextRotation(current, step.targetDeg, extraTurns),
+      );
       return;
     }
 
     if (step.wheel === 'middle') {
-      setMiddleRotation((current) => nextRotation(current, step.targetDeg));
+      setMiddleRotation((current) =>
+        nextRotation(current, step.targetDeg, extraTurns),
+      );
       return;
     }
 
-    setBigRotation((current) => nextRotation(current, step.targetDeg));
+    setBigRotation((current) =>
+      nextRotation(current, step.targetDeg, extraTurns),
+    );
   };
 
   const animateSpinPath = (result: SpinResult, isTurboMode: boolean): number => {
-    const spinDuration = isTurboMode ? 1500 : 5000;
-    const thrustDelay = isTurboMode ? 200 : 600;
+    const spinDuration = isTurboMode ? 2000 : 6200;
+    const thrustDelay = isTurboMode ? 280 : 750;
+    const extraTurns = isTurboMode ? 4 : 7;
     let elapsed = 0;
 
     for (let index = 0; index < result.path.length; index += 1) {
@@ -79,7 +96,7 @@ export const WheelFeature: React.FC = () => {
       schedule(() => {
         setActiveWheel(step.wheel);
         setRoundStatus(`Spinning ${TIER_LABEL[step.wheel]}…`);
-        spinWheel(step);
+        spinWheel(step, extraTurns);
       }, elapsed);
 
       elapsed += spinDuration;
@@ -107,7 +124,14 @@ export const WheelFeature: React.FC = () => {
   };
 
   const handleSpin = async () => {
-    if (!isReady || isRoundActive || balance < wagerAmount) return;
+    if (!isReady || isRoundActive) return;
+
+    const check = validateWager(wagerAmount, minWager, maxWager, balance);
+    if (!check.valid) {
+      setStatusIsError(true);
+      setRoundStatus(check.error ?? 'Invalid wager');
+      return;
+    }
 
     if (resetTimeoutRef.current) {
       clearTimeout(resetTimeoutRef.current);
@@ -116,6 +140,7 @@ export const WheelFeature: React.FC = () => {
     clearAnimationTimeouts();
 
     startRound();
+    setStatusIsError(false);
     setRoundStatus('Spinning...');
     setActiveWheel('small');
 
@@ -125,17 +150,22 @@ export const WheelFeature: React.FC = () => {
 
       schedule(() => {
         resolveRound(result);
+        setStatusIsError(false);
         setRoundStatus(formatResultStatus(result));
 
         resetTimeoutRef.current = setTimeout(() => {
           setActiveWheel('small');
+          setStatusIsError(false);
           setRoundStatus('Ready to spin');
         }, 3000);
       }, totalAnimationMs);
     } catch (error) {
       failRound();
       setActiveWheel('small');
-      const message = error instanceof Error ? error.message : 'Round failed';
+      const message = formatWagerError(
+        error instanceof Error ? error.message : 'Round failed',
+      );
+      setStatusIsError(true);
       setRoundStatus(message);
 
       try {
@@ -155,12 +185,14 @@ export const WheelFeature: React.FC = () => {
         middleRotation={middleRotation}
         bigRotation={bigRotation}
         activeWheel={activeWheel}
-        transitionTime={isTurbo ? 1.5 : 5}
+        transitionTime={isTurbo ? 2 : 6.2}
+        isSpinning={isRoundActive}
       />
       <BetPanel
         onSpin={handleSpin}
         isRoundActive={isRoundActive}
         roundStatus={roundStatus}
+        statusIsError={statusIsError}
         balance={balance}
         wagerAmount={wagerAmount}
         onSetWager={setWager}

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { SpinResult } from '../../features/wheel/types';
+import { roundWager } from '../../shared/utils/wager-validation';
 
 export interface PlayerState {
   balance: number;
@@ -41,9 +42,12 @@ export const usePlayerStore = create<PlayerState>((set) => ({
 
   setWager: (amount) =>
     set((state) => {
-      const clamped = Math.max(state.minWager, Math.min(state.maxWager, amount));
-      const validWager = Math.min(clamped, state.balance);
-      return { wagerAmount: Number(validWager.toFixed(2)) };
+      if (Number.isNaN(amount)) {
+        return state;
+      }
+      const capped = Math.min(state.maxWager, state.balance, amount);
+      const validWager = Math.max(state.minWager, capped);
+      return { wagerAmount: roundWager(validWager) };
     }),
 
   setBalance: (balance, currency) =>
@@ -60,7 +64,9 @@ export const usePlayerStore = create<PlayerState>((set) => ({
       isReady: true,
       minWager,
       maxWager,
-      wagerAmount: Math.min(Math.max(minWager, 1), balance),
+      wagerAmount: roundWager(
+        Math.min(Math.max(minWager, 1), maxWager, balance),
+      ),
     }),
 
   startRound: () =>
