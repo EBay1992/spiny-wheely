@@ -57,3 +57,41 @@ export function formatWagerError(message: string): string {
 export function roundWager(amount: number): number {
   return Number(amount.toFixed(2));
 }
+
+export function isSameWager(a: number, b: number): boolean {
+  return Math.abs(a - b) < 0.001;
+}
+
+/** Five evenly spaced preset amounts within min, max, and balance. */
+export function buildWagerPresets(
+  minWager: number,
+  maxWager: number,
+  balance: number,
+  count = 5,
+): number[] {
+  const effectiveMax = Math.min(maxWager, balance);
+  if (effectiveMax < minWager) return [];
+
+  const anchors = [0.5, 1, 2, 5, 10, 20, 25, 50, 100];
+  const valid = anchors
+    .filter((v) => v >= minWager && v <= effectiveMax)
+    .map(roundWager);
+
+  const withBounds = [
+    ...new Set([roundWager(minWager), ...valid, roundWager(effectiveMax)]),
+  ].sort((a, b) => a - b);
+
+  if (withBounds.length <= count) return withBounds;
+
+  const result: number[] = [];
+  for (let i = 0; i < count; i += 1) {
+    const idx = Math.round((i / (count - 1)) * (withBounds.length - 1));
+    result.push(withBounds[idx]);
+  }
+
+  return [...new Set(result)];
+}
+
+export function formatWagerAmount(amount: number): string {
+  return amount.toFixed(2);
+}
