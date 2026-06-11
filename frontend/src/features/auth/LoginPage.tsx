@@ -15,6 +15,17 @@ import {
 
 type LoginTab = 'player' | 'admin';
 
+const TAB_DEFAULTS: Record<LoginTab, { email: string; password: string }> = {
+  player: {
+    email: 'demo@spinywheely.test',
+    password: 'player123',
+  },
+  admin: {
+    email: 'admin@spinywheely.test',
+    password: 'admin123',
+  },
+};
+
 export function LoginPage() {
   const navigate = useNavigate();
   const role = useAuthStore((s) => s.role);
@@ -29,10 +40,17 @@ export function LoginPage() {
   }, [isHydrated, role, navigate]);
 
   const [tab, setTab] = useState<LoginTab>('player');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState(TAB_DEFAULTS.player.email);
+  const [password, setPassword] = useState(TAB_DEFAULTS.player.password);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const switchTab = (next: LoginTab) => {
+    setTab(next);
+    setEmail(TAB_DEFAULTS[next].email);
+    setPassword(TAB_DEFAULTS[next].password);
+    setError(null);
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -41,14 +59,31 @@ export function LoginPage() {
 
     try {
       if (tab === 'player') {
-        await loginPlayer(email, password);
+        await loginPlayer(email.trim(), password);
         navigate('/play');
       } else {
-        await loginAdmin(email, password);
+        await loginAdmin(email.trim(), password);
         navigate('/admin');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      const message = err instanceof Error ? err.message : 'Login failed';
+      if (
+        tab === 'player' &&
+        email.trim().toLowerCase() === TAB_DEFAULTS.admin.email
+      ) {
+        setError(
+          'That is an operator account — switch to the Operator tab and sign in again.',
+        );
+      } else if (
+        tab === 'admin' &&
+        email.trim().toLowerCase() === TAB_DEFAULTS.player.email
+      ) {
+        setError(
+          'That is a player account — switch to the Player tab and sign in again.',
+        );
+      } else {
+        setError(message);
+      }
     } finally {
       setLoading(false);
     }
@@ -60,22 +95,35 @@ export function LoginPage() {
       <Card style={{ maxWidth: 420, margin: '0 auto' }}>
         <CardTitle>Sign in</CardTitle>
 
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
           <Button
             type="button"
             $variant={tab === 'player' ? 'primary' : 'ghost'}
-            onClick={() => setTab('player')}
+            onClick={() => switchTab('player')}
           >
             Player
           </Button>
           <Button
             type="button"
             $variant={tab === 'admin' ? 'primary' : 'ghost'}
-            onClick={() => setTab('admin')}
+            onClick={() => switchTab('admin')}
           >
             Operator
           </Button>
         </div>
+
+        <p
+          style={{
+            margin: '0 0 1.25rem',
+            fontSize: '0.82rem',
+            color: '#94a3b8',
+            lineHeight: 1.5,
+          }}
+        >
+          {tab === 'player'
+            ? 'Player accounts use the wheel and dashboard.'
+            : 'Operator accounts manage metrics and game config — use admin@spinywheely.test here.'}
+        </p>
 
         <form onSubmit={handleSubmit}>
           <FieldGroup>
@@ -86,11 +134,6 @@ export function LoginPage() {
               autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder={
-                tab === 'player'
-                  ? 'demo@spinywheely.test'
-                  : 'admin@spinywheely.test'
-              }
               required
             />
           </FieldGroup>

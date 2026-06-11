@@ -51,18 +51,22 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   loginPlayer: async (email, password) => {
     const response = await apiLoginPlayer(email, password);
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
     sessionStorage.setItem(PLAYER_TOKEN_KEY, response.accessToken);
     sessionStorage.setItem(AUTH_ROLE_KEY, 'player');
     sessionStorage.setItem(AUTH_EMAIL_KEY, email);
+    setAdminToken(null);
     setPlayerToken(response.accessToken);
     set({ role: 'player', email });
   },
 
   loginAdmin: async (email, password) => {
     const response = await apiLoginAdmin(email, password);
+    sessionStorage.removeItem(PLAYER_TOKEN_KEY);
     sessionStorage.setItem(ADMIN_TOKEN_KEY, response.accessToken);
     sessionStorage.setItem(AUTH_ROLE_KEY, 'admin');
     sessionStorage.setItem(AUTH_EMAIL_KEY, email);
+    setPlayerToken(null);
     setAdminToken(response.accessToken);
     set({ role: 'admin', email });
   },
