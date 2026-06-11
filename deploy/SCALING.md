@@ -32,7 +32,7 @@ docker compose -f docker-compose.yml -f docker-compose.scale.yml up -d --build -
 docker compose -f docker-compose.yml -f docker-compose.scale.yml --profile migrate run --rm migrate
 
 # Verify replicas receive traffic
-node scripts/scale-poc.mjs http://localhost:8080 50
+npm run scale:verify
 
 # Load test through the LB
 API_URL=http://localhost:8080 npm run test:load:smoke
@@ -48,11 +48,10 @@ Requires a **running** cluster. `kubectl` alone is not enough — the API server
 
 ```bash
 kubectl cluster-info   # must succeed before deploy
-chmod +x scripts/k8s-deploy.sh
-./scripts/k8s-deploy.sh
+npm run k8s:deploy
 
 kubectl -n spinywheely port-forward svc/api 8080:80
-node scripts/scale-poc.mjs http://localhost:8080
+npm run scale:verify
 ```
 
 Optional ingress (nginx ingress controller):
@@ -97,4 +96,5 @@ HPA scales API pods between **2–10** on CPU (70% target). Tune in `deploy/kube
 | `backend/src/redis/redis-io.adapter.ts` | Multi-instance WebSocket |
 | `docker-compose.scale.yml` | 3× API + nginx |
 | `deploy/kubernetes/` | K8s manifests + HPA |
-| `scripts/scale-poc.mjs` | Replica distribution check |
+| `tests/load/verify-replicas.mjs` | Replica distribution check |
+| `deploy/k8s-deploy.sh` | Kubernetes deploy automation |

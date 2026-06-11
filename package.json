@@ -19,7 +19,6 @@
     "migration:run": "npm run migration:run -w @spiny-wheely/backend",
     "migration:revert": "npm run migration:revert -w @spiny-wheely/backend",
     "migration:generate": "npm run migration:generate -w @spiny-wheely/backend",
-    "demo": "node scripts/demo-flow.mjs",
     "test": "npm run test -w @spiny-wheely/tests",
     "test:unit": "npm run test:unit -w @spiny-wheely/tests",
     "test:api": "npm run test:api -w @spiny-wheely/tests",
@@ -32,12 +31,11 @@
     "scale:up": "docker compose -f docker-compose.yml -f docker-compose.scale.yml up -d --build --scale api=3",
     "scale:down": "docker compose -f docker-compose.yml -f docker-compose.scale.yml down",
     "scale:migrate": "docker compose -f docker-compose.yml -f docker-compose.scale.yml --profile migrate run --rm migrate",
-    "scale:verify": "node scripts/scale-poc.mjs http://localhost:8080 50",
-    "k8s:deploy": "bash scripts/k8s-deploy.sh"
+    "scale:verify": "node tests/load/verify-replicas.mjs http://localhost:8080 50",
+    "k8s:deploy": "bash deploy/k8s-deploy.sh"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
-    "socket.io-client": "^4.8.3",
     "wait-on": "^8.0.5"
   },
   "engines": {

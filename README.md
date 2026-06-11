@@ -51,8 +51,7 @@ spiny-wheely/
 ├── frontend/             # @spiny-wheely/frontend — React + Vite
 ├── tests/                # Unit, API, e2e, load tests
 ├── docs/                 # Architecture diagrams
-├── deploy/               # Docker nginx, Kubernetes manifests
-├── scripts/              # Demo, scale POC, k8s deploy
+├── deploy/               # Docker nginx, K8s manifests, deploy scripts
 ├── docker-compose.yml    # PostgreSQL + Redis
 └── docker-compose.scale.yml  # Multi-instance API POC
 ```

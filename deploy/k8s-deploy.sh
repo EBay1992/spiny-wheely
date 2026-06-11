@@ -71,4 +71,4 @@ kubectl -n spinywheely rollout status deployment/api --timeout=180s
 
 echo ""
 echo "Done. Port-forward: kubectl -n spinywheely port-forward svc/api 8080:80"
-echo "Then: node scripts/scale-poc.mjs http://localhost:8080"
+echo "Then: npm run scale:verify"

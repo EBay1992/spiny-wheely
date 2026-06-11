@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Proof-of-concept: verify load is spread across API replicas.
- * Usage: node scripts/scale-poc.mjs [baseUrl] [requests]
+ * Verify load is spread across API replicas (checks /health instanceId).
+ * Usage: node tests/load/verify-replicas.mjs [baseUrl] [requests]
  */
 const baseUrl = (process.argv[2] ?? 'http://localhost:8080').replace(/\/$/, '');
 const total = Number(process.argv[3] ?? 30);
