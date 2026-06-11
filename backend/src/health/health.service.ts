@@ -25,10 +25,14 @@ export class HealthService {
       checks.database = 'fail';
     }
 
-    try {
-      checks.redis = (await this.redis.ping()) ? 'ok' : 'fail';
-    } catch {
-      checks.redis = 'fail';
+    if (!this.redis.enabled) {
+      checks.redis = 'ok';
+    } else {
+      try {
+        checks.redis = (await this.redis.ping()) ? 'ok' : 'fail';
+      } catch {
+        checks.redis = 'fail';
+      }
     }
 
     const ready = Object.values(checks).every((value) => value === 'ok');

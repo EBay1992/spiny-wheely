@@ -6,15 +6,24 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
+import { isRedisConfigured } from '../database/connection-options';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
-  private client!: Redis;
+  private client?: Redis;
+  readonly enabled: boolean;
 
-  constructor(private readonly config: ConfigService) {}
+  constructor(private readonly config: ConfigService) {
+    this.enabled = isRedisConfigured();
+  }
 
   onModuleInit(): void {
+    if (!this.enabled) {
+      this.logger.log('Redis disabled (REDIS_HOST not set); using database only');
+      return;
+    }
+
     this.client = new Redis({
       host: this.config.get<string>('REDIS_HOST', '127.0.0.1'),
       port: this.config.get<number>('REDIS_PORT', 6379),
@@ -32,10 +41,16 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async get(key: string): Promise<string | null> {
+    if (!this.client) {
+      return null;
+    }
     return this.client.get(key);
   }
 
   async set(key: string, value: string, ttlSeconds?: number): Promise<void> {
+    if (!this.client) {
+      return;
+    }
     if (ttlSeconds) {
       await this.client.set(key, value, 'EX', ttlSeconds);
       return;
@@ -44,16 +59,23 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async del(...keys: string[]): Promise<void> {
-    if (keys.length > 0) {
-      await this.client.del(...keys);
+    if (!this.client || keys.length === 0) {
+      return;
     }
+    await this.client.del(...keys);
   }
 
   async publish(channel: string, message: string): Promise<void> {
+    if (!this.client) {
+      return;
+    }
     await this.client.publish(channel, message);
   }
 
   async ping(): Promise<boolean> {
+    if (!this.client) {
+      return true;
+    }
     try {
       const response = await this.client.ping();
       return response === 'PONG';

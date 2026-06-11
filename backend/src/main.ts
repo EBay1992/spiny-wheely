@@ -1,14 +1,17 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { isRedisConfigured } from './database/connection-options';
 import { RedisIoAdapter } from './redis/redis-io.adapter';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
-  const redisAdapter = new RedisIoAdapter(app);
-  await redisAdapter.connectToRedis();
-  app.useWebSocketAdapter(redisAdapter);
+  if (isRedisConfigured()) {
+    const redisAdapter = new RedisIoAdapter(app);
+    await redisAdapter.connectToRedis();
+    app.useWebSocketAdapter(redisAdapter);
+  }
 
   app.enableCors({
     origin: true,

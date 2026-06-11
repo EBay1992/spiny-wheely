@@ -133,3 +133,18 @@ Seeded by migrations (`npm run migration:run`) in **development and production**
 | `npm run k8s:deploy`      | Deploy to Kubernetes            |
 
 
+## Deploy on Render (free tier)
+
+One-click blueprint: connect this repo on [Render](https://dashboard.render.com/) → **New** → **Blueprint** → select `render.yaml`.
+
+| Service | Type | Notes |
+| ------- | ---- | ----- |
+| `spinywheely-api` | Web (Node) | Migrations run on each deploy |
+| `spinywheely-web` | Static site | `VITE_API_URL` wired to the API |
+| `spinywheely-db` | PostgreSQL | Free plan (90-day trial, then upgrade) |
+
+After the first deploy, open the **web** service URL and log in with the [test accounts](#test-accounts) above.
+
+> Free web services sleep after ~15 minutes of inactivity; the first request may take ~30s to wake up. Redis is optional — the blueprint omits it for the free tier.
+
+
