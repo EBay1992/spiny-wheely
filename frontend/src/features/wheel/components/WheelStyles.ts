@@ -215,10 +215,9 @@ export const StatusText = styled.p<{ $isError?: boolean }>`
 
 export const GamePanel = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(10px, 3vw, 20px);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
   margin-bottom: 10px;
   background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(10px);
@@ -230,88 +229,31 @@ export const GamePanel = styled.div`
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   width: 100%;
   max-width: 600px;
-
-  .stat {
-    font-weight: 600;
-    span {
-      color: #a5b4fc;
-    }
-  }
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 12px;
-    max-width: 360px;
-  }
 `;
 
-export const WagerSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  width: 100%;
-  min-width: 220px;
-`;
-
-export const WagerLabel = styled.span`
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #94a3b8;
-`;
-
-export const WagerRow = styled.div`
+export const GamePanelTopRow = styled.div`
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+`;
+
+export const BalanceStat = styled.div`
+  flex-shrink: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+
+  span {
+    color: #a5b4fc;
+  }
+`;
+
+export const GamePanelFooter = styled.div`
+  display: flex;
   justify-content: center;
-  gap: 0.65rem;
-`;
-
-export const WagerInput = styled.input<{ $hasError?: boolean }>`
-  width: 7rem;
-  padding: 0.5rem 0.65rem;
-  border-radius: 10px;
-  border: 1px solid
-    ${({ $hasError }) =>
-      $hasError ? 'rgba(248, 113, 113, 0.7)' : 'rgba(255, 255, 255, 0.25)'};
-  background: rgba(2, 6, 23, 0.55);
-  color: #ffd700;
-  font-size: 1.05rem;
-  font-weight: 700;
-  text-align: center;
-  font-family: 'Inter', sans-serif;
-
-  &:focus {
-    outline: 2px solid
-      ${({ $hasError }) =>
-        $hasError ? 'rgba(248, 113, 113, 0.45)' : 'rgba(129, 140, 248, 0.5)'};
-  }
-
-  &::-webkit-outer-spin-button,
-  &::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  &[type='number'] {
-    -moz-appearance: textfield;
-  }
-`;
-
-export const WagerHint = styled.span`
-  font-size: 0.72rem;
-  color: #64748b;
-  text-align: center;
-`;
-
-export const WagerError = styled.p`
-  margin: 0;
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: #fca5a5;
-  text-align: center;
-  line-height: 1.35;
+  width: 100%;
 `;
 
 export const ActionButton = styled.button<{ $active?: boolean }>`
@@ -350,10 +292,3 @@ export const ActionButton = styled.button<{ $active?: boolean }>`
   }
 `;
 
-export const IconButton = styled(ActionButton)`
-  padding: 0;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  font-size: 1.2rem;
-`;

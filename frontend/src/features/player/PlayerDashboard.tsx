@@ -7,24 +7,21 @@ import {
   type PlayerProfile,
   type WagerHistoryItem,
 } from '../../core/network/api';
-import { validateWager } from '../../shared/utils/wager-validation';
+import { WagerPicker } from '../../shared/components/WagerPicker';
 import { DashboardLayout } from '../../shared/components/DashboardLayout';
 import {
-  Badge,
   Button,
   Card,
   CardTitle,
   ErrorText,
-  FieldGroup,
   Grid,
-  Input,
-  Label,
   Page,
   PageTitle,
   StatRow,
   SuccessText,
   Table,
 } from '../../shared/components/DashboardStyles';
+import { roundWager, validateWager } from '../../shared/utils/wager-validation';
 
 const DEFAULT_WAGER_KEY = 'spiny-default-wager';
 
@@ -33,7 +30,7 @@ export function PlayerDashboard() {
   const [gameInfo, setGameInfo] = useState<PlayerGameInfo | null>(null);
   const [history, setHistory] = useState<WagerHistoryItem[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [defaultWager, setDefaultWager] = useState('1');
+  const [defaultWager, setDefaultWager] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [wagerFieldError, setWagerFieldError] = useState<string | null>(null);
@@ -55,7 +52,10 @@ export function PlayerDashboard() {
 
       const stored = localStorage.getItem(DEFAULT_WAGER_KEY);
       if (stored) {
-        setDefaultWager(stored);
+        const parsed = parseFloat(stored);
+        if (!Number.isNaN(parsed)) {
+          setDefaultWager(parsed);
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load dashboard');
@@ -71,12 +71,12 @@ export function PlayerDashboard() {
   const saveDefaultWager = () => {
     if (!gameInfo || !profile) return;
 
-    const value = parseFloat(defaultWager);
+    const balance = parseFloat(profile.wallet.balance);
     const check = validateWager(
-      value,
+      defaultWager,
       gameInfo.minWager,
       gameInfo.maxWager,
-      parseFloat(profile.wallet.balance),
+      balance,
     );
 
     if (!check.valid) {
@@ -85,7 +85,7 @@ export function PlayerDashboard() {
       return;
     }
 
-    localStorage.setItem(DEFAULT_WAGER_KEY, value.toFixed(2));
+    localStorage.setItem(DEFAULT_WAGER_KEY, roundWager(defaultWager).toFixed(2));
     setWagerFieldError(null);
     setError(null);
     setSaved(true);
@@ -102,6 +102,8 @@ export function PlayerDashboard() {
       setError(err instanceof Error ? err.message : 'Failed to load more history');
     }
   };
+
+  const balance = profile ? parseFloat(profile.wallet.balance) : 0;
 
   return (
     <DashboardLayout role="player">
@@ -121,7 +123,7 @@ export function PlayerDashboard() {
               <StatRow>
                 <span>Balance</span>
                 <span>
-                  {profile.wallet.currency} {parseFloat(profile.wallet.balance).toFixed(2)}
+                  {profile.wallet.currency} {balance.toFixed(2)}
                 </span>
               </StatRow>
               <StatRow>
@@ -134,58 +136,34 @@ export function PlayerDashboard() {
             </Card>
 
             <Card>
-              <CardTitle>Game Parameters</CardTitle>
-              <StatRow>
-                <span>Status</span>
-                <span>
-                  <Badge $live={gameInfo.isLive}>{gameInfo.isLive ? 'Live' : 'Offline'}</Badge>
-                </span>
-              </StatRow>
-              <StatRow>
-                <span>Target RTP</span>
-                <span>{gameInfo.targetRtp}%</span>
-              </StatRow>
-              <StatRow>
-                <span>House edge</span>
-                <span>{gameInfo.houseEdge}%</span>
-              </StatRow>
-              <StatRow>
-                <span>Volatility</span>
-                <span>{gameInfo.volatility}</span>
-              </StatRow>
-              <StatRow>
-                <span>Wager limits</span>
-                <span>
-                  ${gameInfo.minWager} – ${gameInfo.maxWager}
-                </span>
-              </StatRow>
-            </Card>
-
-            <Card>
               <CardTitle>My Preferences</CardTitle>
-              <FieldGroup>
-                <Label htmlFor="default-wager">Default wager (applied on Play)</Label>
-                <Input
-                  id="default-wager"
-                  type="number"
-                  min={gameInfo.minWager}
-                  max={gameInfo.maxWager}
-                  step="0.1"
-                  value={defaultWager}
-                  onChange={(e) => {
-                    setDefaultWager(e.target.value);
-                    setWagerFieldError(null);
-                  }}
-                  style={
-                    wagerFieldError
-                      ? { borderColor: 'rgba(248, 113, 113, 0.7)' }
-                      : undefined
-                  }
-                  aria-invalid={Boolean(wagerFieldError)}
-                />
-              </FieldGroup>
-              {wagerFieldError && <ErrorText>{wagerFieldError}</ErrorText>}
-              <Button type="button" onClick={saveDefaultWager}>
+              <p
+                style={{
+                  margin: '0 0 1rem',
+                  fontSize: '0.85rem',
+                  color: '#94a3b8',
+                  lineHeight: 1.5,
+                }}
+              >
+                Use +/− to set your default wager. Open the gear for limits and
+                quick-pick amounts.
+              </p>
+              <WagerPicker
+                value={defaultWager}
+                onChange={(amount) => {
+                  setDefaultWager(amount);
+                  setWagerFieldError(null);
+                }}
+                minWager={gameInfo.minWager}
+                maxWager={gameInfo.maxWager}
+                balance={balance}
+                error={wagerFieldError}
+              />
+              <Button
+                type="button"
+                onClick={saveDefaultWager}
+                style={{ marginTop: '1rem' }}
+              >
                 Save preference
               </Button>
               {saved && <SuccessText>Preference saved.</SuccessText>}

@@ -1,18 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import {
+  GearIcon,
+  WagerGearButton,
+  WagerPicker,
+  WagerSettings,
+} from '../../../shared/components/WagerPicker';
 import { validateWager } from '../../../shared/utils/wager-validation';
 import {
   ActionButton,
+  BalanceStat,
   ControlsContainer,
   GamePanel,
-  IconButton,
+  GamePanelFooter,
+  GamePanelTopRow,
   SpinButton,
   StatusText,
-  WagerError,
-  WagerHint,
-  WagerInput,
-  WagerLabel,
-  WagerRow,
-  WagerSection,
 } from './WheelStyles';
 
 interface BetPanelProps {
@@ -42,90 +44,66 @@ export const BetPanel: React.FC<BetPanelProps> = ({
   isTurbo,
   onToggleTurbo,
 }) => {
-  const [inputValue, setInputValue] = useState(wagerAmount.toFixed(2));
-  const parsedInput = parseFloat(inputValue);
-  const amountForValidation = Number.isNaN(parsedInput) ? wagerAmount : parsedInput;
-  const validation = validateWager(amountForValidation, minWager, maxWager, balance);
-  const wagerError = validation.valid ? null : validation.error;
+  const [showWagerSettings, setShowWagerSettings] = useState(false);
+  const validation = validateWager(wagerAmount, minWager, maxWager, balance);
   const canSpin =
     !isRoundActive && validation.valid && balance >= minWager;
-
-  useEffect(() => {
-    setInputValue(wagerAmount.toFixed(2));
-  }, [wagerAmount]);
-
-  const commitInput = () => {
-    const parsed = parseFloat(inputValue);
-    if (Number.isNaN(parsed)) {
-      setInputValue(wagerAmount.toFixed(2));
-      return;
-    }
-    onSetWager(parsed);
-  };
-
-  const stepWager = (delta: number) => {
-    onSetWager(wagerAmount + delta);
-  };
 
   return (
     <ControlsContainer>
       <GamePanel>
-        <div className="stat">
-          Balance: <span>${balance.toFixed(2)}</span>
-        </div>
+        <GamePanelTopRow>
+          <BalanceStat>
+            Balance: <span>${balance.toFixed(2)}</span>
+          </BalanceStat>
 
-        <WagerSection>
-          <WagerLabel>Wager amount</WagerLabel>
-          <WagerRow>
-            <IconButton
-              type="button"
-              onClick={() => stepWager(-1)}
-              disabled={isRoundActive || wagerAmount <= minWager}
-              aria-label="Decrease wager by one dollar"
-            >
-              −
-            </IconButton>
-            <WagerInput
-              type="number"
-              inputMode="decimal"
-              min={minWager}
-              max={maxWager}
-              step={0.1}
-              value={inputValue}
-              $hasError={Boolean(wagerError)}
-              disabled={isRoundActive}
-              onChange={(e) => setInputValue(e.target.value)}
-              onBlur={commitInput}
-              aria-invalid={Boolean(wagerError)}
-              aria-describedby={wagerError ? 'wager-error' : undefined}
-            />
-            <IconButton
-              type="button"
-              onClick={() => stepWager(1)}
-              disabled={
-                isRoundActive ||
-                wagerAmount >= maxWager ||
-                wagerAmount + 1 > balance
-              }
-              aria-label="Increase wager by one dollar"
-            >
-              +
-            </IconButton>
-          </WagerRow>
-          <WagerHint>
-            Min ${minWager.toFixed(2)} · Max ${maxWager.toFixed(2)}
-          </WagerHint>
-          {wagerError && <WagerError id="wager-error">{wagerError}</WagerError>}
-        </WagerSection>
+          <WagerPicker
+            value={wagerAmount}
+            onChange={onSetWager}
+            minWager={minWager}
+            maxWager={maxWager}
+            balance={balance}
+            disabled={isRoundActive}
+            error={validation.valid ? null : validation.error}
+            stepperOnly
+            hideSettingsPanel
+          />
 
-        <ActionButton
-          type="button"
-          onClick={onToggleTurbo}
-          disabled={isRoundActive}
-          $active={isTurbo}
-        >
-          {isTurbo ? '🚀 Turbo: ON' : '🐢 Turbo: OFF'}
-        </ActionButton>
+          <WagerGearButton
+            type="button"
+            $active={showWagerSettings}
+            disabled={isRoundActive}
+            onClick={() => setShowWagerSettings((open) => !open)}
+            aria-label={
+              showWagerSettings ? 'Hide wager settings' : 'Show wager settings'
+            }
+            aria-expanded={showWagerSettings}
+          >
+            <GearIcon />
+          </WagerGearButton>
+        </GamePanelTopRow>
+
+        {showWagerSettings && (
+          <WagerSettings
+            value={wagerAmount}
+            onChange={onSetWager}
+            minWager={minWager}
+            maxWager={maxWager}
+            balance={balance}
+            disabled={isRoundActive}
+          />
+        )}
+
+        <GamePanelFooter>
+          <ActionButton
+            type="button"
+            onClick={onToggleTurbo}
+            disabled={isRoundActive}
+            $active={isTurbo}
+          >
+            {isTurbo ? 'Turbo: ON' : 'Turbo: OFF'}
+          </ActionButton>
+        </GamePanelFooter>
       </GamePanel>
 
       <SpinButton type="button" onClick={onSpin} disabled={!canSpin}>
