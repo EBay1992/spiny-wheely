@@ -10,12 +10,11 @@ databases:
 services:
   - type: web
     name: spinywheely-api
-    runtime: node
+    runtime: docker
     plan: free
     region: oregon
-    # --include=dev: nest CLI + ts-node for build/migrations (Render omits devDeps by default)
-    buildCommand: npm ci --include=dev && npm run build -w @spiny-wheely/backend && npm run migration:run -w @spiny-wheely/backend
-    startCommand: npm run start:prod -w @spiny-wheely/backend
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV

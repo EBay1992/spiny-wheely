@@ -26,4 +26,4 @@ USER spiny
 EXPOSE 3000
 HEALTHCHECK --interval=10s --timeout=3s --start-period=20s --retries=3 \
   CMD curl -f http://127.0.0.1:3000/health || exit 1
-CMD ["node", "backend/dist/main.js"]
+CMD ["sh", "-c", "node backend/dist/database/run-migrations.js && node backend/dist/main.js"]
