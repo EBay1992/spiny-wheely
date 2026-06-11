@@ -13,9 +13,9 @@ services:
     runtime: node
     plan: free
     region: oregon
-    buildCommand: npm ci && npm run build -w @spiny-wheely/backend
-    # Free tier has no preDeployCommand — migrate on each container start
-    startCommand: npm run migration:run -w @spiny-wheely/backend && npm run start:prod -w @spiny-wheely/backend
+    # --include=dev: nest CLI + ts-node for build/migrations (Render omits devDeps by default)
+    buildCommand: npm ci --include=dev && npm run build -w @spiny-wheely/backend && npm run migration:run -w @spiny-wheely/backend
+    startCommand: npm run start:prod -w @spiny-wheely/backend
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -31,7 +31,7 @@ services:
   - type: web
     name: spinywheely-web
     runtime: static
-    buildCommand: npm ci && npm run build -w @spiny-wheely/frontend
+    buildCommand: npm ci --include=dev && npm run build -w @spiny-wheely/frontend
     staticPublishPath: frontend/dist
     routes:
       - type: rewrite
