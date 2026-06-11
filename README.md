@@ -60,6 +60,11 @@ spiny-wheely/
 └── docker-compose.scale.yml  # Multi-instance API POC
 ```
 
+## Prerequisites
+
+- **Node.js** ≥ 20
+- **Docker** (for PostgreSQL on `localhost:5433` and Redis on `localhost:6379`)
+
 ## Quick start
 
 ```bash
@@ -70,7 +75,27 @@ npm run migration:run         # seed users, wallets, game config
 npm run dev                   # API :3000 + client :5173
 ```
 
-> **Operator login:** open [http://localhost:5173/login](http://localhost:5173/login), choose the **Operator** tab, then sign in with `admin@spinywheely.test` / `admin123`. Admin credentials do not work on the Player tab.
+Open [http://localhost:5173/login](http://localhost:5173/login).
+
+| Tab | Email | Password |
+|-----|-------|----------|
+| **Player** | `demo@spinywheely.test` | `player123` |
+| **Operator** | `admin@spinywheely.test` | `admin123` |
+
+> Admin credentials only work on the **Operator** tab (not Player).
+
+### Verify your setup
+
+```bash
+npm run build                 # compile backend + frontend
+npm run dev:api               # in a separate terminal, if not already running
+npm run test                  # 42 tests when API is up (19 unit-only if API is down)
+curl http://localhost:3000/health
+```
+
+**Docker already running?** If `docker compose up` fails with a container name conflict, Postgres/Redis are already up on ports `5433` / `6379` — skip that step and run migrations.
+
+**Port 3000 in use?** Stop the other process or change `PORT` in `backend/.env`.
 
 
 | Service  | URL                                            |
