@@ -6,7 +6,11 @@ import { MAX_WAGER, MIN_WAGER } from '../../../common/constants/wager.constants'
 export class SpinDto {
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(MIN_WAGER)
-  @Max(MAX_WAGER)
+  @Min(MIN_WAGER, {
+    message: `Wager must be at least $${MIN_WAGER.toFixed(2)}`,
+  })
+  @Max(MAX_WAGER, {
+    message: `Wager must not exceed $${MAX_WAGER.toFixed(2)}`,
+  })
   wagerAmount!: number;
 }
