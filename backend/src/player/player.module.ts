@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
+import { GameConfigModule } from '../game-config/game-config.module';
 import { BetSession } from '../database/entities/bet-session.entity';
 import { User } from '../database/entities/user.entity';
 import { WalletModule } from '../wallet/wallet.module';
@@ -10,6 +11,7 @@ import { PlayerService } from './player.service';
 @Module({
   imports: [
     AuthModule,
+    GameConfigModule,
     WalletModule,
     TypeOrmModule.forFeature([User, BetSession]),
   ],

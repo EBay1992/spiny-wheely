@@ -26,6 +26,12 @@ export class PlayerController {
   }
 
   @UseGuards(PlayerJwtGuard)
+  @Get('game-info')
+  getGameInfo() {
+    return this.playerService.getGameInfo();
+  }
+
+  @UseGuards(PlayerJwtGuard)
   @Get('wager-history')
   getWagerHistory(
     @CurrentUser() player: AuthenticatedUser,

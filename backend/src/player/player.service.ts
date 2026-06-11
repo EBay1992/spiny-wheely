@@ -1,8 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { MIN_WAGER, MAX_WAGER } from '../common/constants/wager.constants';
 import { GameType } from '../common/enums/game-type.enum';
 import { BetSession } from '../database/entities/bet-session.entity';
+import { GameConfigurationService } from '../game-config/game-configuration.service';
 import { User } from '../database/entities/user.entity';
 import { WalletService } from '../wallet/wallet.service';
 import {
@@ -36,6 +38,16 @@ export interface WagerHistoryPage {
   hasMore: boolean;
 }
 
+export interface PlayerGameInfo {
+  gameType: GameType;
+  targetRtp: string;
+  houseEdge: string;
+  volatility: string;
+  isLive: boolean;
+  minWager: number;
+  maxWager: number;
+}
+
 @Injectable()
 export class PlayerService {
   constructor(
@@ -44,6 +56,7 @@ export class PlayerService {
     @InjectRepository(BetSession)
     private readonly betSessionRepository: Repository<BetSession>,
     private readonly walletService: WalletService,
+    private readonly gameConfigService: GameConfigurationService,
   ) {}
 
   async getProfile(playerId: string): Promise<PlayerProfile> {
@@ -64,6 +77,20 @@ export class PlayerService {
         currency: wallet.currency,
         cached: wallet.fromCache ?? false,
       },
+    };
+  }
+
+  async getGameInfo(): Promise<PlayerGameInfo> {
+    const config = await this.gameConfigService.findByGameType(GameType.WHEEL);
+
+    return {
+      gameType: config.gameType,
+      targetRtp: config.targetRtp,
+      houseEdge: config.houseEdge,
+      volatility: config.volatility,
+      isLive: config.isLive,
+      minWager: MIN_WAGER,
+      maxWager: MAX_WAGER,
     };
   }
 
