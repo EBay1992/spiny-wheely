@@ -5,7 +5,7 @@ export const FeatureContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100dvh;
+  min-height: calc(100dvh - 5rem);
   width: 100%;
   padding: clamp(10px, 3vw, 20px);
   position: relative;
@@ -42,50 +42,53 @@ export const WheelContainer = styled.div`
   }
 `;
 
-export const WheelGlow = styled.div`
+const wheelAuraSpin = `
+  @keyframes wheelAuraSpin {
+    0%, 100% {
+      opacity: 0.55;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.06);
+    }
+  }
+`;
+
+const wheelAuraIdle = `
+  @keyframes wheelAuraIdle {
+    0%, 100% {
+      opacity: 0.45;
+      transform: translate(-50%, -50%) scale(0.98);
+    }
+    50% {
+      opacity: 0.7;
+      transform: translate(-50%, -50%) scale(1.02);
+    }
+  }
+`;
+
+export const WheelGlow = styled.div<{ $isSpinning?: boolean }>`
+  ${wheelAuraSpin}
+  ${wheelAuraIdle}
+
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: 110%;
-  height: 110%;
+  width: 115%;
+  height: 115%;
   background: radial-gradient(
     circle,
-    rgba(165, 180, 252, 0.15) 0%,
-    rgba(99, 102, 241, 0.08) 50%,
-    transparent 70%
+    rgba(251, 191, 36, 0.12) 0%,
+    rgba(165, 180, 252, 0.2) 35%,
+    rgba(99, 102, 241, 0.1) 55%,
+    transparent 72%
   );
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
-`;
-
-export const WheelPointer = styled.div<{ $activeWheel: 'small' | 'middle' | 'big' }>`
-  position: absolute;
-  left: 50%;
-  z-index: 10;
-  width: clamp(24px, 8vw, 40px);
-  height: clamp(28px, 9vw, 44px);
-  background-color: #ffd700;
-  clip-path: polygon(50% 100%, 0 0, 100% 0);
-  transform: translate(-50%, -100%);
-  transition: top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  top: ${props => {
-    if (props.$activeWheel === 'small') return '30%';
-    if (props.$activeWheel === 'middle') return '15%';
-    return '0%';
-  }};
-  
-  &::after {
-    content: '';
-    position: absolute;
-    top: 4px;
-    left: 4px;
-    right: 4px;
-    bottom: 4px;
-    background-color: #000000ff;
-    clip-path: polygon(50% 100%, 0 0, 100% 0);
-  }
+  animation: ${({ $isSpinning }) =>
+    $isSpinning ? 'wheelAuraSpin 1.2s ease-in-out infinite' : 'wheelAuraIdle 4s ease-in-out infinite'};
 `;
 
 interface WheelLayerProps {
@@ -93,6 +96,8 @@ interface WheelLayerProps {
   $zIndex: number;
   $rotation: number;
   $transitionTime: number;
+  $isActive?: boolean;
+  $isSpinning?: boolean;
 }
 
 export const WheelLayer = styled.img<WheelLayerProps>`
@@ -102,10 +107,18 @@ export const WheelLayer = styled.img<WheelLayerProps>`
   width: ${props => props.$size};
   height: ${props => props.$size};
   z-index: ${props => props.$zIndex};
-  transform: translate(-50%, -50%) rotate(${props => props.$rotation}deg);
-  transition: transform ${props => props.$transitionTime}s cubic-bezier(0.15, 0.85, 0.35, 1);
-  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.45))
-          drop-shadow(0 2px 5px rgba(0, 0, 0, 0.3));
+  transform: translate(-50%, -50%) rotate(${props => props.$rotation}deg)
+    scale(${props => (props.$isActive ? 1.03 : 1)});
+  transition:
+    transform ${props => props.$transitionTime}s cubic-bezier(0.08, 0.82, 0.12, 1),
+    filter 0.45s ease,
+    opacity 0.45s ease;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35))
+    brightness(${props => (props.$isActive ? 1.12 : 0.9)})
+    saturate(${props => (props.$isActive ? 1.15 : 1)});
+  opacity: ${props => (props.$isActive ? 1 : 0.88)};
+  will-change: ${props => (props.$isSpinning ? 'transform' : 'auto')};
   pointer-events: none;
   user-select: none;
 `;
@@ -185,14 +198,19 @@ export const SpinButton = styled.button`
   }
 `;
 
-export const StatusText = styled.p`
+export const StatusText = styled.p<{ $isError?: boolean }>`
   font-size: 0.9rem;
-  color: #a5b4fc;
   font-weight: 500;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  opacity: 0.8;
-  height: 1.2rem;
+  text-align: center;
+  max-width: 420px;
+  line-height: 1.45;
+  min-height: 1.2rem;
+  margin: 0;
+  padding: 0 0.5rem;
+  color: ${({ $isError }) => ($isError ? '#fca5a5' : '#a5b4fc')};
+  letter-spacing: ${({ $isError }) => ($isError ? 'normal' : '1px')};
+  text-transform: ${({ $isError }) => ($isError ? 'none' : 'uppercase')};
+  opacity: ${({ $isError }) => ($isError ? 1 : 0.8)};
 `;
 
 export const GamePanel = styled.div`
@@ -220,24 +238,80 @@ export const GamePanel = styled.div`
     }
   }
 
-  .bet-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 600;
-
-    .bet-amount {
-      color: #ffd700;
-      min-width: 60px;
-      text-align: center;
-    }
-  }
-
   @media (max-width: 768px) {
     flex-direction: column;
     gap: 12px;
-    max-width: 320px;
+    max-width: 360px;
   }
+`;
+
+export const WagerSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  min-width: 220px;
+`;
+
+export const WagerLabel = styled.span`
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+`;
+
+export const WagerRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+`;
+
+export const WagerInput = styled.input<{ $hasError?: boolean }>`
+  width: 7rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 10px;
+  border: 1px solid
+    ${({ $hasError }) =>
+      $hasError ? 'rgba(248, 113, 113, 0.7)' : 'rgba(255, 255, 255, 0.25)'};
+  background: rgba(2, 6, 23, 0.55);
+  color: #ffd700;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+
+  &:focus {
+    outline: 2px solid
+      ${({ $hasError }) =>
+        $hasError ? 'rgba(248, 113, 113, 0.45)' : 'rgba(129, 140, 248, 0.5)'};
+  }
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  &[type='number'] {
+    -moz-appearance: textfield;
+  }
+`;
+
+export const WagerHint = styled.span`
+  font-size: 0.72rem;
+  color: #64748b;
+  text-align: center;
+`;
+
+export const WagerError = styled.p`
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #fca5a5;
+  text-align: center;
+  line-height: 1.35;
 `;
 
 export const ActionButton = styled.button<{ $active?: boolean }>`
