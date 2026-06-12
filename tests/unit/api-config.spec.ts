@@ -32,9 +32,9 @@ describe('resolveApiUrl', () => {
     expect(
       resolveApiUrl({
         dev: false,
-        viteApiUrl: 'https://spinywheely-api.onrender.com',
+        viteApiUrl: 'https://spinywheely.fly.dev',
       }),
-    ).toBe('https://spinywheely-api.onrender.com');
+    ).toBe('https://spinywheely.fly.dev');
   });
 
   it('uses same-origin in production when VITE_API_URL is empty', () => {

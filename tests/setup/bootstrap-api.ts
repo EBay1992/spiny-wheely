@@ -21,6 +21,7 @@ function runCommand(
   command: string,
   args: string[],
   cwd = REPO_ROOT,
+  timeoutMs = 120_000,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
@@ -29,8 +30,22 @@ function runCommand(
       env: process.env,
     });
 
-    child.on('error', reject);
+    const timer = setTimeout(() => {
+      child.kill('SIGTERM');
+      reject(
+        new Error(
+          `${command} ${args.join(' ')} timed out after ${timeoutMs}ms`,
+        ),
+      );
+    }, timeoutMs);
+
+    child.on('error', (error) => {
+      clearTimeout(timer);
+      reject(error);
+    });
+
     child.on('exit', (code) => {
+      clearTimeout(timer);
       if (code === 0) {
         resolve();
         return;
@@ -63,6 +78,14 @@ async function waitForApi(maxAttempts = 90): Promise<void> {
 }
 
 async function ensureDockerServices(): Promise<void> {
+  try {
+    await runCommand('docker', ['info'], REPO_ROOT, 15_000);
+  } catch {
+    throw new Error(
+      'Docker is not running or not responding. Start Docker Desktop, wait until it is ready, then re-run npm run test.',
+    );
+  }
+
   await runCommand('docker', ['compose', 'up', '-d']);
 }
 

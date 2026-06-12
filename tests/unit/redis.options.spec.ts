@@ -17,8 +17,8 @@ describe('redis.options', () => {
     clearRedisEnv();
   });
 
-  it('detects Upstash REDIS_URL', () => {
-    process.env.REDIS_URL = 'rediss://default:token@host.upstash.io:6379';
+  it('detects REDIS_URL', () => {
+    process.env.REDIS_URL = 'rediss://default:token@redis.example.com:6379';
     expect(isRedisConfigured()).toBe(true);
     expect(resolveRedisConnection()).toBe(process.env.REDIS_URL);
   });
