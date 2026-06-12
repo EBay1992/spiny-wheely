@@ -67,58 +67,6 @@ export interface UpdateGameConfigPayload {
   isLive?: boolean;
 }
 
-export interface WheelSimulatePayload {
-  wagerAmount: number;
-  smallRotation: number;
-  middleRotation: number;
-  bigRotation: number;
-}
-
-export interface WheelSimulateSelectedSegment {
-  index: number;
-  label: string;
-  type: 'multiplier' | 'next_wheel';
-  multiplier: number;
-  pointerAngle: number;
-  rotation: number;
-}
-
-export interface WheelSimulateResult {
-  testRunId: string;
-  path: Array<{
-    wheel: 'small' | 'middle' | 'big';
-    segmentIndex: number;
-    label: string;
-    stopAngle: number;
-    type: 'multiplier' | 'next_wheel';
-  }>;
-  label: string;
-  multiplier: number;
-  wagerAmount: string;
-  payoutAmount: string;
-  netResult: string;
-  selectedSegments: {
-    small: WheelSimulateSelectedSegment;
-    middle?: WheelSimulateSelectedSegment;
-    big?: WheelSimulateSelectedSegment;
-  };
-}
-
-export interface WheelPreviewResponse {
-  minWager: number;
-  maxWager: number;
-  wheels: Array<{
-    wheel: 'small' | 'middle' | 'big';
-    segments: Array<{
-      index: number;
-      label: string;
-      multiplier: number;
-      stopAngle: number;
-      type: 'multiplier' | 'next_wheel';
-    }>;
-  }>;
-}
-
 let playerToken: string | null = null;
 let adminToken: string | null = null;
 
@@ -257,19 +205,6 @@ export async function updateGameConfiguration(
 ): Promise<GameConfig> {
   return adminRequest<GameConfig>(`/admin/games/config/${id}`, {
     method: 'PATCH',
-    body: JSON.stringify(payload),
-  });
-}
-
-export async function getWheelPreview(): Promise<WheelPreviewResponse> {
-  return adminRequest<WheelPreviewResponse>('/admin/wheel/preview');
-}
-
-export async function simulateWheel(
-  payload: WheelSimulatePayload,
-): Promise<WheelSimulateResult> {
-  return adminRequest<WheelSimulateResult>('/admin/wheel/simulate', {
-    method: 'POST',
     body: JSON.stringify(payload),
   });
 }

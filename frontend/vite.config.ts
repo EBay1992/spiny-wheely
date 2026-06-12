@@ -16,19 +16,7 @@ export default defineConfig({
         target: 'http://127.0.0.1:3000',
         changeOrigin: true,
       },
-      '/admin/auth': {
-        target: 'http://127.0.0.1:3000',
-        changeOrigin: true,
-      },
-      '/admin/metrics': {
-        target: 'http://127.0.0.1:3000',
-        changeOrigin: true,
-      },
-      '/admin/games': {
-        target: 'http://127.0.0.1:3000',
-        changeOrigin: true,
-      },
-      '/admin/wheel': {
+      '/admin': {
         target: 'http://127.0.0.1:3000',
         changeOrigin: true,
       },

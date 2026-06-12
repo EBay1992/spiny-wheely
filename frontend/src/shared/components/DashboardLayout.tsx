@@ -41,22 +41,13 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
               </NavLink>
             </>
           ) : (
-            <>
-              <NavLink
-                as={Link}
-                to="/admin"
-                $active={location.pathname === "/admin"}
-              >
-                Operator Console
-              </NavLink>
-              <NavLink
-                as={Link}
-                to="/admin/simulator"
-                $active={location.pathname === "/admin/simulator"}
-              >
-                Wheel Test
-              </NavLink>
-            </>
+            <NavLink
+              as={Link}
+              to="/admin"
+              $active={location.pathname === "/admin"}
+            >
+              Operator Console
+            </NavLink>
           )}
         </NavLinks>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>

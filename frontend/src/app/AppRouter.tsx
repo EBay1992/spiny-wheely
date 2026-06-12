@@ -3,7 +3,6 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { checkApiHealth } from "../core/network/api";
 import { useAuthStore } from "../core/store/authStore";
 import { AdminDashboard } from "../features/admin/AdminDashboard";
-import { WheelSimulatorPage } from "../features/admin/WheelSimulatorPage";
 import { LoginPage } from "../features/auth/LoginPage";
 import { PlayerDashboard } from "../features/player/PlayerDashboard";
 import { PlayPage } from "../features/wheel/PlayPage";
@@ -93,14 +92,6 @@ export function AppRouter() {
           element={
             <ProtectedRoute role="admin">
               <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/simulator"
-          element={
-            <ProtectedRoute role="admin">
-              <WheelSimulatorPage />
             </ProtectedRoute>
           }
         />
