@@ -9,7 +9,8 @@
     "tests"
   ],
   "scripts": {
-    "dev": "concurrently -n api,web -c blue,green --kill-others-on-fail \"npm run dev -w @spiny-wheely/backend\" \"wait-on http://127.0.0.1:3000/health -t 60000 && npm run dev -w @spiny-wheely/frontend\"",
+    "infra:up": "docker compose up -d --wait",
+    "dev": "npm run infra:up && concurrently -n api,web -c blue,green --kill-others-on-fail \"npm run dev -w @spiny-wheely/backend\" \"wait-on http://127.0.0.1:3000/health -t 60000 && npm run dev -w @spiny-wheely/frontend\"",
     "dev:api": "npm run dev -w @spiny-wheely/backend",
     "dev:web": "npm run dev -w @spiny-wheely/frontend",
     "build": "npm run build -w @spiny-wheely/backend && npm run build -w @spiny-wheely/frontend",
@@ -29,9 +30,10 @@
     "test:load:heavy": "npm run test:load:heavy -w @spiny-wheely/tests",
     "test:load:seed": "npm run test:load:seed -w @spiny-wheely/tests",
     "scale:up": "docker compose -f docker-compose.yml -f docker-compose.scale.yml up -d --build --scale api=3",
-    "scale:down": "docker compose -f docker-compose.yml -f docker-compose.scale.yml down",
+    "scale:down": "docker compose -f docker-compose.yml -f docker-compose.scale.yml down && npm run infra:up",
     "scale:migrate": "docker compose -f docker-compose.yml -f docker-compose.scale.yml --profile migrate run --rm migrate",
     "scale:verify": "node tests/load/verify-replicas.mjs http://localhost:8080 50",
+    "scale:web": "VITE_USE_REMOTE_API=true VITE_API_URL=http://localhost:8080 npm run dev:web",
     "k8s:deploy": "bash deploy/k8s-deploy.sh"
   },
   "devDependencies": {

@@ -66,12 +66,21 @@ spiny-wheely/
 ## Quick start (local)
 
 ```bash
-docker compose up -d
 npm install
 cp backend/.env.example backend/.env
-npm run migration:run
-npm run dev                   # API :3000 + client :5173
+npm run migration:run         # first time only
+npm run dev                   # starts Postgres + Redis, API :3000, UI :5173
 ```
+
+### Local modes
+
+| Goal | Commands | UI | API |
+|------|----------|-----|-----|
+| **Play locally** | `npm run dev` | http://localhost:5173 | http://localhost:3000 |
+| **Test scaling** | `npm run scale:up` → `npm run scale:web` | http://localhost:5173 | http://localhost:8080 (3 replicas) |
+| **Back to local** | `npm run scale:down` → `npm run dev` | :5173 | :3000 |
+
+`scale:down` stops API replicas and nginx, then restarts Postgres + Redis for local dev.
 
 Open [http://localhost:5173/login](http://localhost:5173/login).
 

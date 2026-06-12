@@ -25,16 +25,19 @@ This repo supports running **multiple API replicas** behind a load balancer. Web
 ## Quick start — Docker Compose (local POC)
 
 ```bash
-# Infra + 3 API replicas + nginx on :8080
-docker compose -f docker-compose.yml -f docker-compose.scale.yml up -d --build --scale api=3
+npm run scale:up              # 3 API replicas + nginx on :8080
+npm run scale:migrate         # first time only
+npm run scale:verify          # optional — check replica distribution
+npm run scale:web             # UI on :5173 → API via :8080
 
-# Run DB migrations (first time)
-docker compose -f docker-compose.yml -f docker-compose.scale.yml --profile migrate run --rm migrate
+# Return to normal local dev (restores Postgres + Redis for :3000 API)
+npm run scale:down
+npm run dev
+```
 
-# Verify replicas receive traffic
-npm run scale:verify
+Load test through the LB:
 
-# Load test through the LB
+```bash
 API_URL=http://localhost:8080 npm run test:load:smoke
 ```
 
