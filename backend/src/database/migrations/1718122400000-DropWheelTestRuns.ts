@@ -1,9 +1,13 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateWheelTestRuns1718122300000 implements MigrationInterface {
-  name = 'CreateWheelTestRuns1718122300000';
+export class DropWheelTestRuns1718122400000 implements MigrationInterface {
+  name = 'DropWheelTestRuns1718122400000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DROP TABLE IF EXISTS "wheel_test_runs"`);
+  }
+
+  public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       CREATE TABLE "wheel_test_runs" (
         "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -24,13 +28,8 @@ export class CreateWheelTestRuns1718122300000 implements MigrationInterface {
           FOREIGN KEY ("admin_user_id") REFERENCES "users"("id") ON DELETE SET NULL
       )
     `);
-
     await queryRunner.query(`
       CREATE INDEX "idx_wheel_test_runs_created_at" ON "wheel_test_runs" ("created_at")
     `);
-  }
-
-  public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE "wheel_test_runs"`);
   }
 }
