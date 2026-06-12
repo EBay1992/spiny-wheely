@@ -1,97 +1,58 @@
-# Deploy spinyWheely on Fly.io (no Redis)
+# Deploy on Fly.io (one machine, full stack)
 
-One Fly app serves **both** the React client and the NestJS API behind nginx on a single URL. PostgreSQL runs on [Fly Postgres](https://fly.io/docs/postgres/). Redis is **not** required — omit `REDIS_HOST` and the API uses Postgres only (fine for a live demo on one machine).
+One **Fly machine** runs a **single container** with all services:
 
-## What you get
+| Process | Role |
+|---------|------|
+| PostgreSQL 16 | Database (data on `/data/postgres` volume) |
+| Redis 7 | Cache + Socket.IO fan-out |
+| NestJS API | REST + WebSocket on `:3000` |
+| nginx | React static files + reverse proxy on `:8080` |
 
-| URL | Serves |
-|-----|--------|
-| `https://<app>.fly.dev/` | Player + operator UI |
-| `https://<app>.fly.dev/player/*` | Player REST API |
-| `https://<app>.fly.dev/admin/*` | Operator REST API |
-| `wss://<app>.fly.dev/wheel` | Wheel WebSocket |
+No Docker-in-Docker — builds cleanly on Fly/Depot remote builders.
 
-Demo logins (seeded by migrations): `demo@spinywheely.test` / `player123`, `admin@spinywheely.test` / `admin123`.
+Public URL: `https://<app>.fly.dev`
 
-## Prerequisites
+Demo logins: `demo@spinywheely.test` / `player123`, `admin@spinywheely.test` / `admin123`
 
-- [Fly CLI](https://fly.io/docs/hands-on/install-flyctl/) installed and logged in (`fly auth login`)
-- Billing may be required for Postgres (Fly free allowances change; check current Fly pricing)
-
-## 1. Create the Fly app
-
-From the **repo root**:
+## Quick deploy
 
 ```bash
-# Pick a globally unique app name, or keep spinywheely if available
+bash deploy/fly/setup.sh
+```
+
+## Manual deploy
+
+```bash
 fly apps create spinywheely --org personal
+fly volumes create pg_data --size 1 --region iad -a spinywheely
+
+fly secrets set -a spinywheely \
+  JWT_SECRET="$(openssl rand -hex 32)" \
+  POSTGRES_PASSWORD="$(openssl rand -hex 16)"
+
+fly deploy . --config deploy/fly/fly.toml --dockerfile deploy/fly/Dockerfile --ha=false
 ```
 
-Edit `deploy/fly/fly.toml` and set `app = 'your-unique-name'` if needed.
+## Scaling beyond one machine
 
-## 2. Create and attach Postgres
+This Fly deploy is a single-machine stack. For multiple API replicas, use **[deploy/SCALING.md](../SCALING.md)** (Docker Compose POC or Kubernetes). All replicas share one Redis instance for the Socket.IO adapter.
+
+## Operations
 
 ```bash
-fly postgres create --name spinywheely-db --region iad --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1
-
-fly postgres attach spinywheely-db --app spinywheely
+fly logs -a spinywheely
+fly machine start -a spinywheely    # if stopped
+fly ssh console -a spinywheely
 ```
-
-This sets the `DATABASE_URL` secret on the app. Migrations run automatically on each deploy.
-
-## 3. Set secrets
-
-```bash
-fly secrets set --app spinywheely JWT_SECRET="$(openssl rand -hex 32)"
-```
-
-Do **not** set `REDIS_HOST` for this demo layout.
-
-## 4. Deploy
-
-```bash
-fly deploy --config deploy/fly/fly.toml
-```
-
-First build compiles backend + frontend and may take a few minutes.
-
-## 5. Open the demo
-
-```bash
-fly open --app spinywheely
-```
-
-Log in on the **Player** tab, spin the wheel, then try the **Operator** tab for metrics/RTP.
-
-## Useful commands
-
-```bash
-fly logs --app spinywheely
-fly status --app spinywheely
-fly ssh console --app spinywheely
-fly scale count 1 --app spinywheely   # keep one machine for live sessions
-```
-
-## Cost / live-session tips
-
-- `auto_stop_machines = 'off'` and `min_machines_running = 1` in `fly.toml` keep the app awake during an interview (uses more credits).
-- For a short demo, you can set `auto_stop_machines = 'on'` after the session to save cost.
-- Single-instance without Redis is correct for demos; do not scale to multiple machines without adding Redis (see [deploy/SCALING.md](../SCALING.md)).
-
-## Two-app alternative (optional)
-
-If you prefer separate API and static frontend apps:
-
-1. Deploy API with `backend/Dockerfile` and `fly postgres attach`.
-2. Build frontend with `VITE_API_URL=https://your-api.fly.dev` and deploy as a static/nginx app.
-
-The all-in-one image in this folder avoids CORS/WebSocket cross-origin setup for interviews.
 
 ## Troubleshooting
 
 | Issue | Fix |
 |-------|-----|
-| Health check failing | `fly logs` — usually DB not attached or migrations failed |
-| WebSocket won’t connect | Ensure you use the combined deploy (same origin), not split apps without `VITE_API_URL` |
-| 502 on first request | Wait for health grace period (~45s) after deploy |
-| Login fails | Confirm migrations ran; check `DATABASE_URL` with `fly secrets list` |
+| Build fails on DinD / privileged | Use this Dockerfile (no DinD) |
+| `initdb: must specify a password` | Fixed in entrypoint (`--pwfile`); redeploy |
+| Crash loop / load balance errors | Symptom of entrypoint exit — check `fly logs` for the first error |
+| Health check timeout | Wait ~90s on first boot (Postgres init + migrations) |
+| `JWT_SECRET is required` | `fly secrets set JWT_SECRET=...` |
+| Machine stopped | `fly machine start -a spinywheely` |

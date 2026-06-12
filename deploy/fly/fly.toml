@@ -1,16 +1,15 @@
-# spinyWheely — single Fly app (API + frontend, no Redis)
-# Deploy from repo root: fly deploy --config deploy/fly/fly.toml
+# spinyWheely — one Fly machine (Postgres + Redis + API + web in one container)
+# Deploy: bash deploy/fly/setup.sh
 
 app = 'spinywheely'
 primary_region = 'iad'
 
 [build]
-  dockerfile = 'deploy/fly/Dockerfile'
+  dockerfile = 'Dockerfile'
 
-[env]
-  NODE_ENV = 'production'
-  PORT = '3000'
-  # REDIS_HOST intentionally unset — single machine, no Redis adapter
+[[mounts]]
+  source = 'pg_data'
+  destination = '/data'
 
 [http_service]
   internal_port = 8080
@@ -26,13 +25,13 @@ primary_region = 'iad'
     soft_limit = 200
 
   [[http_service.checks]]
-    grace_period = '45s'
+    grace_period = '90s'
     interval = '15s'
     method = 'GET'
     path = '/health'
     timeout = '5s'
 
 [[vm]]
-  memory = '1gb'
+  memory = '2gb'
   cpu_kind = 'shared'
-  cpus = 1
+  cpus = 2
