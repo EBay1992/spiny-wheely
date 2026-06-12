@@ -1,9 +1,8 @@
 import type { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 
 /**
- * CORS for split-host production (e.g. Vercel UI + Render API).
- * When CORS_ORIGINS is unset, reflects any request origin (localhost + previews).
- * Set CORS_ORIGINS=https://app.vercel.app,http://localhost:5173 to restrict.
+ * When CORS_ORIGINS is unset, reflects any request origin (fine for local dev).
+ * Set CORS_ORIGINS=https://spinywheely.fly.dev,http://localhost:5173 to restrict.
  */
 export function buildCorsOptions(): CorsOptions {
   const allowed =

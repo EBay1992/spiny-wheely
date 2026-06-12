@@ -1,14 +1,14 @@
 import type { RedisOptions } from 'ioredis';
 
-/** True when Redis is configured via REDIS_URL (Upstash) or REDIS_HOST. */
+/** True when Redis is configured via REDIS_URL or REDIS_HOST. */
 export function isRedisConfigured(): boolean {
   return resolveRedisConnection() !== null;
 }
 
 /**
  * Resolves ioredis connection settings.
- * Prefer REDIS_URL for Upstash (`rediss://default:token@host:port`).
- * Fall back to REDIS_HOST + REDIS_PORT for local Docker.
+ * Prefer REDIS_URL when set (`redis://` or `rediss://`).
+ * Fall back to REDIS_HOST + REDIS_PORT for local Docker / Fly embedded Redis.
  */
 export function resolveRedisConnection(): string | RedisOptions | null {
   const url = process.env.REDIS_URL?.trim();
