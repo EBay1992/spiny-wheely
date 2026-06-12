@@ -4,10 +4,9 @@ export const FeatureContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: calc(100dvh - 5rem);
+  justify-content: flex-start;
   width: 100%;
-  padding: clamp(10px, 3vw, 20px) 0;
+  padding: 0 0 clamp(10px, 3vw, 20px);
   position: relative;
   z-index: 1;
   box-sizing: border-box;
@@ -16,7 +15,7 @@ export const FeatureContainer = styled.div`
 export const Title = styled.h1`
   font-size: clamp(1.8rem, 5vw, 2.5rem);
   font-weight: 700;
-  margin-bottom: clamp(1rem, 3vw, 2rem);
+  margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 4px;

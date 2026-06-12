@@ -8,6 +8,7 @@ export const DashboardShell = styled.div`
   box-sizing: border-box;
   width: min(1100px, calc(100% - 2 * ${dashboardSideInset}));
   margin-inline: auto;
+  padding-top: clamp(0.5rem, 2vw, 0.75rem);
   padding-bottom: clamp(1rem, 3vw, 2rem);
 `;
 
@@ -145,7 +146,7 @@ export const NavBar = styled.nav`
   justify-content: space-between;
   gap: 1rem;
   width: 100%;
-  margin: clamp(1rem, 3vw, 1.5rem) 0 1.25rem;
+  margin: 0 0 1rem;
   padding: 0.85rem 1.25rem;
   border-radius: 14px;
   background: rgba(15, 23, 42, 0.72);
