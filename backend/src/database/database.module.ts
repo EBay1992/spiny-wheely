@@ -5,6 +5,7 @@ import { BetSession } from './entities/bet-session.entity';
 import { GameConfiguration } from './entities/game-configuration.entity';
 import { User } from './entities/user.entity';
 import { Wallet } from './entities/wallet.entity';
+import { WheelTestRun } from './entities/wheel-test-run.entity';
 import {
   resolvePostgresConnection,
   toTypeOrmOptions,
@@ -21,12 +22,18 @@ import {
           idleTimeoutMillis: 30_000,
           connectionTimeoutMillis: 5_000,
         }),
-        entities: [User, Wallet, GameConfiguration, BetSession],
+        entities: [User, Wallet, GameConfiguration, BetSession, WheelTestRun],
         synchronize: config.get<string>('NODE_ENV') === 'development',
         logging: config.get<string>('NODE_ENV') === 'development',
       }),
     }),
-    TypeOrmModule.forFeature([User, Wallet, GameConfiguration, BetSession]),
+    TypeOrmModule.forFeature([
+      User,
+      Wallet,
+      GameConfiguration,
+      BetSession,
+      WheelTestRun,
+    ]),
   ],
   exports: [TypeOrmModule],
 })

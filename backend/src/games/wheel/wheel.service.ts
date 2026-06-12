@@ -4,10 +4,14 @@ import {
   Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'crypto';
+import { Repository } from 'typeorm';
 import { MIN_WAGER, MAX_WAGER } from '../../common/constants/wager.constants';
 import { GameType } from '../../common/enums/game-type.enum';
 import { Volatility } from '../../common/enums/volatility.enum';
+import { parseVolatility } from '../../common/utils/volatility.util';
+import { resolveFromRotations } from '../../game-math/wheel/wheel-outcome.resolver';
 import { WheelRngEngine } from '../../game-math/wheel/wheel-rng.engine';
 import { WheelSpinResult } from '../../game-math/wheel/wheel-spin-result.interface';
 import {
@@ -16,6 +20,7 @@ import {
   segmentStopAngle,
   SMALL_WHEEL_SEGMENTS,
 } from '../../game-math/wheel/wheel-segment.definitions';
+import { WheelTestRun } from '../../database/entities/wheel-test-run.entity';
 import { GameConfigurationService } from '../../game-config/game-configuration.service';
 import { REDIS_TTL, RedisKeys } from '../../redis/redis.keys';
 import { RedisService } from '../../redis/redis.service';
@@ -44,6 +49,17 @@ export interface WheelPreview {
   maxWager: number;
 }
 
+export interface WheelSimulateResult {
+  testRunId: string;
+  path: WheelSpinResult['path'];
+  label: string;
+  multiplier: number;
+  wagerAmount: string;
+  payoutAmount: string;
+  netResult: string;
+  selectedSegments: ReturnType<typeof resolveFromRotations>['selectedSegments'];
+}
+
 @Injectable()
 export class WheelService {
   private readonly logger = new Logger(WheelService.name);
@@ -53,7 +69,54 @@ export class WheelService {
     private readonly gameConfigService: GameConfigurationService,
     private readonly walletService: WalletService,
     private readonly redis: RedisService,
+    @InjectRepository(WheelTestRun)
+    private readonly wheelTestRunRepo: Repository<WheelTestRun>,
   ) {}
+
+  async simulateFromRotations(
+    wagerAmount: number,
+    smallRotation: number,
+    middleRotation: number,
+    bigRotation: number,
+    adminUserId?: string,
+  ): Promise<WheelSimulateResult> {
+    this.assertWagerInRange(wagerAmount);
+
+    const wager = wagerAmount.toFixed(2);
+    const outcome = resolveFromRotations(
+      smallRotation,
+      middleRotation,
+      bigRotation,
+    );
+    const payout = this.computePayout(wager, outcome.finalMultiplier);
+    const net = (parseFloat(payout) - wagerAmount).toFixed(2);
+
+    const record = this.wheelTestRunRepo.create({
+      adminUserId: adminUserId ?? null,
+      wagerAmount: wager,
+      smallRotation,
+      middleRotation,
+      bigRotation,
+      path: outcome.path,
+      finalLabel: outcome.finalLabel,
+      multiplier: outcome.finalMultiplier,
+      payoutAmount: payout,
+      netResult: net,
+      selectedSegments: outcome.selectedSegments,
+    });
+    const saved = await this.wheelTestRunRepo.save(record);
+
+    return {
+      testRunId: saved.id,
+      path: outcome.path,
+      label: outcome.finalLabel,
+      multiplier: outcome.finalMultiplier,
+      wagerAmount: wager,
+      payoutAmount: payout,
+      netResult: net,
+      selectedSegments: outcome.selectedSegments,
+    };
+  }
 
   async getPreview(): Promise<WheelPreview> {
     const config = await this.gameConfigService.findByGameType(GameType.WHEEL);
@@ -61,7 +124,7 @@ export class WheelService {
     return {
       gameType: GameType.WHEEL,
       targetRtp: config.targetRtp,
-      volatility: config.volatility as Volatility,
+      volatility: parseVolatility(config.volatility),
       wheels: [
         { wheel: 'small', segments: this.toPublicSegments(SMALL_WHEEL_SEGMENTS) },
         { wheel: 'middle', segments: this.toPublicSegments(MIDDLE_WHEEL_SEGMENTS) },
@@ -91,7 +154,7 @@ export class WheelService {
 
     const outcome = this.rngEngine.resolveRound(
       parseFloat(config.targetRtp),
-      config.volatility as Volatility,
+      parseVolatility(config.volatility),
     );
     const payout = this.computePayout(wager, outcome.finalMultiplier);
 

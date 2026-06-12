@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { BetSession } from '../database/entities/bet-session.entity';
 import { GameConfigModule } from '../game-config/game-config.module';
+import { WheelModule } from '../games/wheel/wheel.module';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 
@@ -10,6 +11,7 @@ import { AdminService } from './admin.service';
   imports: [
     AuthModule,
     GameConfigModule,
+    WheelModule,
     TypeOrmModule.forFeature([BetSession]),
   ],
   controllers: [AdminController],
