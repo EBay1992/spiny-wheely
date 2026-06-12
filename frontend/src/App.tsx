@@ -1,11 +1,14 @@
-import { GlobalStyle } from './shared/styles/GlobalStyles';
 import { AppRouter } from './app/AppRouter';
+import { ErrorBoundary } from './shared/components/ErrorBoundary';
+import { GlobalStyle } from './shared/styles/GlobalStyles';
 
 function App() {
   return (
     <>
       <GlobalStyle />
-      <AppRouter />
+      <ErrorBoundary>
+        <AppRouter />
+      </ErrorBoundary>
     </>
   );
 }

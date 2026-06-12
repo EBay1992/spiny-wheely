@@ -13,6 +13,14 @@ const ADMIN_TOKEN_KEY = 'spiny-admin-token';
 const AUTH_ROLE_KEY = 'spiny-auth-role';
 const AUTH_EMAIL_KEY = 'spiny-auth-email';
 
+function readStoredRole(): AuthRole | null {
+  const value = sessionStorage.getItem(AUTH_ROLE_KEY);
+  if (value === 'player' || value === 'admin') {
+    return value;
+  }
+  return null;
+}
+
 interface AuthState {
   role: AuthRole | null;
   email: string | null;
@@ -29,7 +37,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   isHydrated: false,
 
   hydrate: () => {
-    const role = sessionStorage.getItem(AUTH_ROLE_KEY) as AuthRole | null;
+    const role = readStoredRole();
     const email = sessionStorage.getItem(AUTH_EMAIL_KEY);
     const playerToken = sessionStorage.getItem(PLAYER_TOKEN_KEY);
     const adminToken = sessionStorage.getItem(ADMIN_TOKEN_KEY);
