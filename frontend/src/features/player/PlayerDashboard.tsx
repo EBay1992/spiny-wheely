@@ -11,16 +11,17 @@ import { WagerPicker } from '../../shared/components/WagerPicker';
 import { DashboardLayout } from '../../shared/components/DashboardLayout';
 import {
   Button,
+  ButtonRow,
   Card,
   CardTitle,
   ErrorText,
   Grid,
-  Page,
   PageTitle,
   StatRow,
   SuccessText,
   Table,
 } from '../../shared/components/DashboardStyles';
+import { formatSignedUsd } from '../../shared/utils/currency';
 import { roundWager, validateWager } from '../../shared/utils/wager-validation';
 
 const DEFAULT_WAGER_KEY = 'spiny-default-wager';
@@ -107,7 +108,7 @@ export function PlayerDashboard() {
 
   return (
     <DashboardLayout role="player">
-      <Page style={{ padding: 0 }}>
+      <>
         <PageTitle>Player Dashboard</PageTitle>
         {loading && <p style={{ color: '#94a3b8' }}>Loading…</p>}
         {error && <ErrorText>{error}</ErrorText>}
@@ -130,9 +131,11 @@ export function PlayerDashboard() {
                 <span>Member since</span>
                 <span>{new Date(profile.createdAt).toLocaleDateString()}</span>
               </StatRow>
-              <Button $variant="ghost" type="button" onClick={() => void loadData()}>
-                Refresh
-              </Button>
+              <ButtonRow style={{ marginTop: '1.25rem' }}>
+                <Button $variant="ghost" type="button" onClick={() => void loadData()}>
+                  Refresh
+                </Button>
+              </ButtonRow>
             </Card>
 
             <Card>
@@ -197,21 +200,26 @@ export function PlayerDashboard() {
                           parseFloat(item.netResult) >= 0 ? '#86efac' : '#fca5a5',
                       }}
                     >
-                      {parseFloat(item.netResult) >= 0 ? '+' : ''}
-                      ${parseFloat(item.netResult).toFixed(2)}
+                      {formatSignedUsd(parseFloat(item.netResult))}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </Table>
             {nextCursor && (
-              <Button $variant="ghost" type="button" onClick={() => void loadMoreHistory()}>
-                Load more
-              </Button>
+              <ButtonRow style={{ marginTop: '1.25rem' }}>
+                <Button
+                  $variant="ghost"
+                  type="button"
+                  onClick={() => void loadMoreHistory()}
+                >
+                  Load more
+                </Button>
+              </ButtonRow>
             )}
           </Card>
         )}
-      </Page>
+      </>
     </DashboardLayout>
   );
 }

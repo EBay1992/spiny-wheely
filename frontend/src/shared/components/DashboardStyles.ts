@@ -1,5 +1,20 @@
 import styled from 'styled-components';
 
+/** Minimum gutter from viewport edge on narrow screens. */
+export const dashboardSideInset = 'clamp(1rem, 4vw, 2rem)';
+
+/** Single centered column — equal auto margins left and right. */
+export const DashboardShell = styled.div`
+  box-sizing: border-box;
+  width: min(1100px, calc(100% - 2 * ${dashboardSideInset}));
+  margin-inline: auto;
+  padding-bottom: clamp(1rem, 3vw, 2rem);
+`;
+
+export const DashboardMain = styled.main`
+  width: 100%;
+`;
+
 export const Page = styled.div`
   min-height: 100dvh;
   padding: clamp(1rem, 3vw, 2rem);
@@ -129,7 +144,8 @@ export const NavBar = styled.nav`
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin: clamp(1rem, 3vw, 1.5rem) clamp(1rem, 4vw, 2rem) 1.25rem;
+  width: 100%;
+  margin: clamp(1rem, 3vw, 1.5rem) 0 1.25rem;
   padding: 0.85rem 1.25rem;
   border-radius: 14px;
   background: rgba(15, 23, 42, 0.72);

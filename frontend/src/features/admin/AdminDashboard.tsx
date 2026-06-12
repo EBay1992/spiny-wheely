@@ -6,6 +6,10 @@ import {
   type GameConfig,
   type PlatformMetrics,
 } from '../../core/network/api';
+import {
+  DateRangePicker,
+  defaultMetricsRange,
+} from '../../shared/components/DateRangePicker';
 import { DashboardLayout } from '../../shared/components/DashboardLayout';
 import {
   Badge,
@@ -17,18 +21,18 @@ import {
   Grid,
   Input,
   Label,
-  Page,
   PageTitle,
   Select,
   StatRow,
   SuccessText,
 } from '../../shared/components/DashboardStyles';
+import {
+  METRICS_DATE_PRESETS,
+  localDayEndIso,
+  localDayStartIso,
+} from '../../shared/utils/date-range';
 
 const SUPPORTED_GAMES = new Set(['WHEEL']);
-
-function toDateInputValue(date: Date): string {
-  return date.toISOString().slice(0, 10);
-}
 
 interface ConfigDraft {
   targetRtp: string;
@@ -40,22 +44,27 @@ export function AdminDashboard() {
   const [metrics, setMetrics] = useState<PlatformMetrics | null>(null);
   const [configs, setConfigs] = useState<GameConfig[]>([]);
   const [drafts, setDrafts] = useState<Record<string, ConfigDraft>>({});
-  const [startDate, setStartDate] = useState(
-    toDateInputValue(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)),
-  );
-  const [endDate, setEndDate] = useState(toDateInputValue(new Date()));
+  const initialRange = defaultMetricsRange();
+  const [startDate, setStartDate] = useState(initialRange.start);
+  const [endDate, setEndDate] = useState(initialRange.end);
+  const [activePresetId, setActivePresetId] = useState<string | null>('30d');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
 
-  const loadMetrics = useCallback(async () => {
-    const data = await getPlatformMetrics(
-      new Date(`${startDate}T00:00:00.000Z`).toISOString(),
-      new Date(`${endDate}T23:59:59.999Z`).toISOString(),
-    );
-    setMetrics(data);
-  }, [startDate, endDate]);
+  const loadMetrics = useCallback(
+    async (range?: { start: string; end: string }) => {
+      const start = range?.start ?? startDate;
+      const end = range?.end ?? endDate;
+      const data = await getPlatformMetrics(
+        localDayStartIso(start),
+        localDayEndIso(end),
+      );
+      setMetrics(data);
+    },
+    [startDate, endDate],
+  );
 
   const loadConfigs = useCallback(async () => {
     const data = (await getGameConfigurations()).filter((config) =>
@@ -89,13 +98,37 @@ export function AdminDashboard() {
     void loadAll();
   }, [loadAll]);
 
-  const refreshMetrics = async () => {
+  const refreshMetrics = async (range?: { start: string; end: string }) => {
     setError(null);
     try {
-      await loadMetrics();
+      await loadMetrics(range);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load metrics');
     }
+  };
+
+  const applyDateRange = (range: { start: string; end: string }) => {
+    setStartDate(range.start);
+    setEndDate(range.end);
+    const matchedPreset = METRICS_DATE_PRESETS.find((preset) => {
+      const resolved = preset.resolve();
+      return resolved.start === range.start && resolved.end === range.end;
+    });
+    setActivePresetId(matchedPreset?.id ?? null);
+  };
+
+  const handleCustomRangeChange = (range: { start: string; end: string }) => {
+    applyDateRange(range);
+  };
+
+  const handlePresetSelect = (
+    presetId: string,
+    range: { start: string; end: string },
+  ) => {
+    setStartDate(range.start);
+    setEndDate(range.end);
+    setActivePresetId(presetId);
+    void refreshMetrics(range);
   };
 
   const saveConfig = async (config: GameConfig) => {
@@ -126,7 +159,7 @@ export function AdminDashboard() {
 
   return (
     <DashboardLayout role="admin">
-      <Page style={{ padding: 0 }}>
+      <>
         <PageTitle>Operator Console</PageTitle>
         {loading && <p style={{ color: '#94a3b8' }}>Loading…</p>}
         {error && <ErrorText>{error}</ErrorText>}
@@ -136,26 +169,13 @@ export function AdminDashboard() {
           <>
             <Card style={{ marginBottom: '1.25rem' }}>
               <CardTitle>Platform Metrics</CardTitle>
-              <Grid>
-                <FieldGroup>
-                  <Label htmlFor="start-date">Start date</Label>
-                  <Input
-                    id="start-date"
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
-                </FieldGroup>
-                <FieldGroup>
-                  <Label htmlFor="end-date">End date</Label>
-                  <Input
-                    id="end-date"
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
-                </FieldGroup>
-              </Grid>
+              <DateRangePicker
+                start={startDate}
+                end={endDate}
+                activePresetId={activePresetId}
+                onChange={handleCustomRangeChange}
+                onPresetSelect={handlePresetSelect}
+              />
               <Button type="button" onClick={() => void refreshMetrics()}>
                 Update metrics
               </Button>
@@ -171,7 +191,7 @@ export function AdminDashboard() {
                     <span>${metrics.totalPayout}</span>
                   </StatRow>
                   <StatRow>
-                    <span>Gross gaming revenue</span>
+                    <span>Gross gaming revenue (GGR)</span>
                     <span>${metrics.grossGamingRevenue}</span>
                   </StatRow>
                   <StatRow>
@@ -277,7 +297,7 @@ export function AdminDashboard() {
             </Grid>
           </>
         )}
-      </Page>
+      </>
     </DashboardLayout>
   );
 }

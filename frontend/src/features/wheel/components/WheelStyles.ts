@@ -7,7 +7,7 @@ export const FeatureContainer = styled.div`
   justify-content: center;
   min-height: calc(100dvh - 5rem);
   width: 100%;
-  padding: clamp(10px, 3vw, 20px);
+  padding: clamp(10px, 3vw, 20px) 0;
   position: relative;
   z-index: 1;
   box-sizing: border-box;

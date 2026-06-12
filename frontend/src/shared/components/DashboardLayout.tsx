@@ -1,6 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../core/store/authStore';
-import { Button, NavBar, NavLink, NavLinks } from './DashboardStyles';
+import {
+  Button,
+  DashboardMain,
+  DashboardShell,
+  NavBar,
+  NavLink,
+  NavLinks,
+} from './DashboardStyles';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -13,7 +20,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   const logout = useAuthStore((s) => s.logout);
 
   return (
-    <>
+    <DashboardShell>
       <NavBar>
         <NavLinks>
           {role === 'player' ? (
@@ -49,7 +56,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
           </Button>
         </div>
       </NavBar>
-      {children}
-    </>
+      <DashboardMain>{children}</DashboardMain>
+    </DashboardShell>
   );
 }
