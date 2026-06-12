@@ -2,13 +2,12 @@ import { describe, expect, it } from 'vitest';
 import {
   ADMIN_EMAIL,
   ADMIN_PASSWORD,
-  integrationDescribe,
   PLAYER_EMAIL,
   PLAYER_PASSWORD,
 } from '../helpers/config';
 import { apiRequest, loginAdmin, loginPlayer } from '../helpers/http';
 
-integrationDescribe('Operator (Admin) API', () => {
+describe('Operator (Admin) API', () => {
   let adminToken: string;
 
   it('POST /admin/auth/login — authenticates operator', async () => {

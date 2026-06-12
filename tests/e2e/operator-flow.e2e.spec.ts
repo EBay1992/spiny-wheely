@@ -1,12 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import {
-  ADMIN_EMAIL,
-  ADMIN_PASSWORD,
-  integrationDescribe,
-} from '../helpers/config';
+import { ADMIN_EMAIL, ADMIN_PASSWORD } from '../helpers/config';
 import { apiRequest, loginAdmin } from '../helpers/http';
 
-integrationDescribe('Operator configuration E2E', () => {
+describe('Operator configuration E2E', () => {
   it('operator can read and patch wheel RTP', async () => {
     const token = await loginAdmin(ADMIN_EMAIL, ADMIN_PASSWORD);
 

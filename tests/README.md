@@ -19,14 +19,10 @@ tests/
 | Suite | Requires |
 |-------|----------|
 | `unit` | Nothing |
-| `api`, `e2e` | API running + Docker (Postgres, Redis) + migrations |
+| `api`, `e2e`, `test` | Docker (Postgres + Redis). The test runner starts the API automatically if it is not already running. |
 | `load` | Same as api/e2e |
 
-```bash
-docker compose up -d
-npm run migration:run
-npm run dev:api   # or npm run dev
-```
+For `npm run test` and integration suites, ensure Docker is available. If the API is already running on `API_URL`, the runner reuses it.
 
 ## Commands (from repo root)
 
@@ -50,7 +46,6 @@ npm run test:load          # Load / stress test
 | `TEST_PLAYER_PASSWORD` | `player123` | Player password |
 | `TEST_ADMIN_EMAIL` | `admin@spinywheely.test` | Operator login |
 | `TEST_ADMIN_PASSWORD` | `admin123` | Operator password |
-| `SKIP_INTEGRATION` | — | Set `1` to skip api/e2e when API is down |
 | `LOAD_CONCURRENCY` | `100` | HTTP/profile parallel workers |
 | `LOAD_WHEEL_WORKERS` | `50` | WebSocket spin workers |
 | `LOAD_DURATION_SEC` | `30` | Duration per scenario |

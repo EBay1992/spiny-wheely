@@ -1,7 +1,6 @@
 import { io } from 'socket.io-client';
 import { describe, expect, it } from 'vitest';
 import {
-  integrationDescribe,
   PLAYER_EMAIL,
   PLAYER_PASSWORD,
   WHEEL_NAMESPACE,
@@ -54,7 +53,7 @@ function spinWithoutResult(
   });
 }
 
-integrationDescribe('Wheel security', () => {
+describe('Wheel security', () => {
   it('does not settle a round without JWT', async () => {
     const { gotResult, gotError } = await spinWithoutResult({ wagerAmount: 1 });
     expect(gotResult).toBe(false);

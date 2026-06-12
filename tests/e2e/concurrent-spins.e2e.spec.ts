@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { integrationDescribe, PLAYER_EMAIL, PLAYER_PASSWORD } from '../helpers/config';
+import { PLAYER_EMAIL, PLAYER_PASSWORD } from '../helpers/config';
 import { loginPlayer } from '../helpers/http';
 import { placeWager } from '../helpers/wheel-socket';
 
-integrationDescribe('Concurrent wheel rounds', () => {
+describe('Concurrent wheel rounds', () => {
   it('handles sequential spins without balance corruption', async () => {
     const token = await loginPlayer(PLAYER_EMAIL, PLAYER_PASSWORD);
 

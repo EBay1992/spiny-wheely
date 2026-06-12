@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { integrationDescribe, PLAYER_EMAIL, PLAYER_PASSWORD } from '../helpers/config';
+import { PLAYER_EMAIL, PLAYER_PASSWORD } from '../helpers/config';
 import { apiRequest, loginPlayer } from '../helpers/http';
 import { fetchWheelPreview, placeWager } from '../helpers/wheel-socket';
 
-integrationDescribe('Wheel round E2E', () => {
+describe('Wheel round E2E', () => {
   it('returns wheel preview with three tiers', async () => {
     const preview = await fetchWheelPreview();
 

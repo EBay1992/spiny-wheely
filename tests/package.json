@@ -5,8 +5,8 @@
   "description": "spinyWheely test suite — unit, API, e2e, load",
   "type": "module",
   "scripts": {
-    "test": "vitest run",
-    "test:unit": "vitest run unit",
+    "test": "vitest run --config vitest.config.ts",
+    "test:unit": "vitest run --config vitest.unit.config.ts",
     "test:api": "vitest run api",
     "test:e2e": "vitest run e2e",
     "test:integration": "vitest run api e2e",

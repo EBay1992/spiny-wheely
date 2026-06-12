@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   ADMIN_EMAIL,
-  integrationDescribe,
   PLAYER_EMAIL,
   PLAYER_PASSWORD,
 } from '../helpers/config';
 import { apiRequest, loginPlayer } from '../helpers/http';
 
-integrationDescribe('Player API', () => {
+describe('Player API', () => {
   let playerToken: string;
 
   it('POST /player/auth/login — authenticates seeded player', async () => {
