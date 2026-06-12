@@ -76,17 +76,35 @@ interface StatusPageProps {
   code: string;
   title: string;
   message: string;
+  actionLabel?: string;
+  onAction?: () => void;
   children?: ReactNode;
 }
 
-export function StatusPage({ code, title, message, children }: StatusPageProps) {
+export function StatusPage({
+  code,
+  title,
+  message,
+  actionLabel,
+  onAction,
+  children,
+}: StatusPageProps) {
   return (
     <StatusShell>
       <StatusCard role="alert">
         <StatusCode>{code}</StatusCode>
         <StatusTitle>{title}</StatusTitle>
         <StatusMessage>{message}</StatusMessage>
-        {children ? <StatusActions>{children}</StatusActions> : null}
+        {children || actionLabel ? (
+          <StatusActions>
+            {actionLabel && onAction ? (
+              <Button type="button" onClick={onAction}>
+                {actionLabel}
+              </Button>
+            ) : null}
+            {children}
+          </StatusActions>
+        ) : null}
       </StatusCard>
     </StatusShell>
   );

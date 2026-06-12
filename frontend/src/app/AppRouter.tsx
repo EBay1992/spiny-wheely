@@ -6,7 +6,8 @@ import {
   Routes,
   useLocation,
 } from "react-router-dom";
-import { checkApiHealth } from "../core/network/api";
+import { waitForApiHealth } from "../core/network/api";
+import { isCrossOriginApi } from "../core/network/config";
 import { useAuthStore } from "../core/store/authStore";
 import { AdminDashboard } from "../features/admin/AdminDashboard";
 import { ErrorFallbackPage } from "../features/errors/ErrorFallbackPage";
@@ -101,7 +102,15 @@ function AppRoutes() {
 export function AppRouter() {
   const hydrate = useAuthStore((s) => s.hydrate);
   const [apiDown, setApiDown] = useState(false);
+  const [checkingApi, setCheckingApi] = useState(true);
   const [bootstrapError, setBootstrapError] = useState<Error | null>(null);
+
+  const probeApi = async () => {
+    setCheckingApi(true);
+    const ok = await waitForApiHealth(isCrossOriginApi() ? 8 : 5, 2_000);
+    setApiDown(!ok);
+    setCheckingApi(false);
+  };
 
   useEffect(() => {
     try {
@@ -112,9 +121,7 @@ export function AppRouter() {
       );
     }
 
-    void checkApiHealth()
-      .then((ok) => setApiDown(!ok))
-      .catch(() => setApiDown(true));
+    void probeApi();
   }, [hydrate]);
 
   if (bootstrapError) {
@@ -129,8 +136,12 @@ export function AppRouter() {
     );
   }
 
+  if (checkingApi) {
+    return <AppLoadingScreen />;
+  }
+
   if (apiDown) {
-    return <ServiceUnavailablePage />;
+    return <ServiceUnavailablePage onRetry={() => void probeApi()} />;
   }
 
   return (

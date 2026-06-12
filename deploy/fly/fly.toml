@@ -1,0 +1,38 @@
+# spinyWheely — single Fly app (API + frontend, no Redis)
+# Deploy from repo root: fly deploy --config deploy/fly/fly.toml
+
+app = 'spinywheely'
+primary_region = 'iad'
+
+[build]
+  dockerfile = 'deploy/fly/Dockerfile'
+
+[env]
+  NODE_ENV = 'production'
+  PORT = '3000'
+  # REDIS_HOST intentionally unset — single machine, no Redis adapter
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ['app']
+
+  [http_service.concurrency]
+    type = 'requests'
+    hard_limit = 250
+    soft_limit = 200
+
+  [[http_service.checks]]
+    grace_period = '45s'
+    interval = '15s'
+    method = 'GET'
+    path = '/health'
+    timeout = '5s'
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

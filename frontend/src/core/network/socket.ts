@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import type { SpinResult, WheelTier } from '../../features/wheel/types';
-import { getWheelSocketUrl } from './config';
+import { getWheelSocketUrl, isCrossOriginApi } from './config';
 
 export interface BackendPathStep {
   wheel: WheelTier;
@@ -36,6 +36,7 @@ export class WheelSocketClient {
     this.socket = io(getWheelSocketUrl(), {
       auth: { token: accessToken },
       transports: ['websocket'],
+      withCredentials: isCrossOriginApi(),
       autoConnect: true,
     });
 

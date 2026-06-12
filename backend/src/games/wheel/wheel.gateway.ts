@@ -10,6 +10,7 @@ import {
   WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { buildCorsOptions } from '../../common/cors.config';
 import { WsPlayerGuard } from '../../auth/guards/ws-player.guard';
 import { SpinDto } from './dto/spin.dto';
 import { WheelService } from './wheel.service';
@@ -24,7 +25,7 @@ interface AuthenticatedSocket extends Socket {
 @UseFilters(WheelWsExceptionFilter)
 @WebSocketGateway({
   namespace: '/wheel',
-  cors: { origin: true, credentials: true },
+  cors: buildCorsOptions(),
 })
 export class WheelGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()

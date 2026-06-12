@@ -1,5 +1,42 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type ProxyOptions } from 'vite'
 import react from '@vitejs/plugin-react'
+
+const API_TARGET = 'http://127.0.0.1:3000'
+
+/** Shared proxy for dev server and `vite preview` (local production build testing). */
+const apiProxy: Record<string, ProxyOptions> = {
+  '/health': {
+    target: API_TARGET,
+    changeOrigin: true,
+  },
+  '/player': {
+    target: API_TARGET,
+    changeOrigin: true,
+  },
+  // Proxy API subpaths only — never `/admin` itself (SPA route).
+  '/admin/auth': {
+    target: API_TARGET,
+    changeOrigin: true,
+  },
+  '/admin/metrics': {
+    target: API_TARGET,
+    changeOrigin: true,
+  },
+  '/admin/games': {
+    target: API_TARGET,
+    changeOrigin: true,
+  },
+  '/wheel': {
+    target: API_TARGET,
+    ws: true,
+    changeOrigin: true,
+  },
+  '/socket.io': {
+    target: API_TARGET,
+    ws: true,
+    changeOrigin: true,
+  },
+}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -7,33 +44,11 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
-    proxy: {
-      '/health': {
-        target: 'http://127.0.0.1:3000',
-        changeOrigin: true,
-      },
-      '/player': {
-        target: 'http://127.0.0.1:3000',
-        changeOrigin: true,
-      },
-      // Proxy API subpaths only — never `/admin` itself (SPA route).
-      '/admin/auth': {
-        target: 'http://127.0.0.1:3000',
-        changeOrigin: true,
-      },
-      '/admin/metrics': {
-        target: 'http://127.0.0.1:3000',
-        changeOrigin: true,
-      },
-      '/admin/games': {
-        target: 'http://127.0.0.1:3000',
-        changeOrigin: true,
-      },
-      '/socket.io': {
-        target: 'http://127.0.0.1:3000',
-        ws: true,
-        changeOrigin: true,
-      },
-    },
+    proxy: apiProxy,
+  },
+  preview: {
+    host: true,
+    port: 4173,
+    proxy: apiProxy,
   },
 })

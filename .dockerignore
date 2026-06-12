@@ -6,6 +6,5 @@ node_modules
 **/.env
 *.log
 tests/load/reports
-frontend
 coverage
 .DS_Store

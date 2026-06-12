@@ -133,18 +133,33 @@ Seeded by migrations (`npm run migration:run`) in **development and production**
 | `npm run k8s:deploy`      | Deploy to Kubernetes            |
 
 
-## Deploy on Render (free tier)
+## Deploy on Fly.io (live demo, no Redis)
 
-One-click blueprint: connect this repo on [Render](https://dashboard.render.com/) → **New** → **Blueprint** → select `render.yaml`.
+Single URL for UI + API — good for interview walkthroughs. See **[deploy/fly/README.md](deploy/fly/README.md)**.
 
-| Service | Type | Notes |
-| ------- | ---- | ----- |
-| `spinywheely-api` | Web (Node) | Migrations run on each deploy |
-| `spinywheely-web` | Static site | `VITE_API_URL` wired to the API |
-| `spinywheely-db` | PostgreSQL | Free plan (90-day trial, then upgrade) |
+```bash
+fly postgres create --name spinywheely-db --region iad
+fly postgres attach spinywheely-db --app spinywheely
+fly secrets set --app spinywheely JWT_SECRET="$(openssl rand -hex 32)"
+fly deploy --config deploy/fly/fly.toml
+```
 
-After the first deploy, open the **web** service URL and log in with the [test accounts](#test-accounts) above.
+## Deploy: Vercel + Render + Upstash (recommended for live demo)
 
-> Free web services sleep after ~15 minutes of inactivity; the first request may take ~30s to wake up. Redis is optional — the blueprint omits it for the free tier.
+| Layer | Provider |
+| ----- | -------- |
+| Frontend | [Vercel](https://vercel.com) (`vercel.json` at repo root) |
+| API + Postgres | [Render](https://render.com) (`render.yaml` blueprint) |
+| Redis | [Upstash](https://upstash.com) (`REDIS_URL` on Render) |
+
+Full wiring guide: **[deploy/split-stack/README.md](deploy/split-stack/README.md)**
+
+```text
+1. Upstash  → create Redis → copy rediss:// URL
+2. Render   → Blueprint (render.yaml) → set REDIS_URL env on API
+3. Vercel   → import repo → VITE_API_URL=https://your-api.onrender.com
+```
+
+Demo logins: [test accounts](#test-accounts) below.
 
 

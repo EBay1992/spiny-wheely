@@ -1,5 +1,6 @@
-# Render Blueprint — free-tier full stack for spinyWheely
-# Dashboard: https://dashboard.render.com/ → New → Blueprint → connect this repo
+# Render Blueprint — API + Postgres (frontend on Vercel, Redis on Upstash)
+# Dashboard: New → Blueprint → connect this repo
+# After deploy: set REDIS_URL from Upstash, then point Vercel VITE_API_URL at the API URL.
 
 databases:
   - name: spinywheely-db
@@ -25,20 +26,6 @@ services:
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
-      # REDIS_HOST intentionally unset — single instance, no Render Redis on free tier
-
-  - type: web
-    name: spinywheely-web
-    runtime: static
-    buildCommand: npm ci --include=dev && npm run build -w @spiny-wheely/frontend
-    staticPublishPath: frontend/dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    envVars:
-      - key: VITE_API_URL
-        fromService:
-          type: web
-          name: spinywheely-api
-          envVarKey: RENDER_EXTERNAL_URL
+      # Upstash: copy "Redis URL" (rediss://…) from console → Render env
+      - key: REDIS_URL
+        sync: false

@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { buildCorsOptions } from './common/cors.config';
 import { isRedisConfigured } from './database/connection-options';
 import { RedisIoAdapter } from './redis/redis-io.adapter';
 
@@ -13,10 +14,7 @@ async function bootstrap(): Promise<void> {
     app.useWebSocketAdapter(redisAdapter);
   }
 
-  app.enableCors({
-    origin: true,
-    credentials: true,
-  });
+  app.enableCors(buildCorsOptions());
 
   app.useGlobalPipes(
     new ValidationPipe({

@@ -4,9 +4,8 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
-import { isRedisConfigured } from '../database/connection-options';
+import { isRedisConfigured, resolveRedisConnection } from './redis.options';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
@@ -14,22 +13,23 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private client?: Redis;
   readonly enabled: boolean;
 
-  constructor(private readonly config: ConfigService) {
+  constructor() {
     this.enabled = isRedisConfigured();
   }
 
   onModuleInit(): void {
     if (!this.enabled) {
-      this.logger.log('Redis disabled (REDIS_HOST not set); using database only');
+      this.logger.log('Redis disabled (set REDIS_URL or REDIS_HOST); using database only');
       return;
     }
 
-    this.client = new Redis({
-      host: this.config.get<string>('REDIS_HOST', '127.0.0.1'),
-      port: this.config.get<number>('REDIS_PORT', 6379),
-      maxRetriesPerRequest: 3,
-      lazyConnect: true,
-    });
+    const connection = resolveRedisConnection();
+    if (!connection) {
+      return;
+    }
+
+    this.client =
+      typeof connection === 'string' ? new Redis(connection) : new Redis(connection);
 
     this.client.connect().catch((error: Error) => {
       this.logger.warn(`Redis connection failed: ${error.message}`);

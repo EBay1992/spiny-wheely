@@ -10,11 +10,7 @@ export interface PostgresConnectionOptions {
   ssl?: boolean | { rejectUnauthorized: boolean };
 }
 
-/** True when Redis host is explicitly configured (omit on free single-instance deploys). */
-export function isRedisConfigured(): boolean {
-  const host = process.env.REDIS_HOST?.trim();
-  return Boolean(host);
-}
+export { isRedisConfigured } from '../redis/redis.options';
 
 function sslFromDatabaseUrl(databaseUrl: string): PostgresConnectionOptions['ssl'] {
   try {

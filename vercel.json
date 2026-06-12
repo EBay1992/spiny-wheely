@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm ci --include=dev && npm run build -w @spiny-wheely/frontend",
+  "outputDirectory": "frontend/dist",
+  "installCommand": "npm ci --include=dev",
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/((?!assets/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

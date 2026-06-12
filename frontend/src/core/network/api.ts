@@ -211,9 +211,30 @@ export async function updateGameConfiguration(
 
 export async function checkApiHealth(): Promise<boolean> {
   try {
-    const response = await fetch(`${getApiUrl()}/health`);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5_000);
+    const response = await fetch(`${getApiUrl()}/health`, {
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
     return response.ok;
   } catch {
     return false;
   }
+}
+
+/** Retry while the API is still starting (e.g. `npm run dev` booting Nest). */
+export async function waitForApiHealth(
+  attempts = 5,
+  delayMs = 2_000,
+): Promise<boolean> {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    if (await checkApiHealth()) {
+      return true;
+    }
+    if (attempt < attempts - 1) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+  return false;
 }
