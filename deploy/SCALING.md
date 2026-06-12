@@ -87,7 +87,8 @@ HPA scales API pods between **2–10** on CPU (70% target). Tune in `deploy/kube
 |----------|---------|---------|
 | `DATABASE_POOL_MAX` | `10` | Postgres pool per API process |
 | `INSTANCE_ID` | `HOSTNAME` | Shown in `/health` for LB verification |
-| `REDIS_HOST` / `REDIS_PORT` | required | Socket.IO adapter + cache |
+| `REDIS_HOST` / `REDIS_PORT` | local / Compose | Socket.IO adapter + cache |
+| `REDIS_URL` | managed Redis (TLS) | Takes precedence over `REDIS_HOST` when set |
 
 ## Files
 

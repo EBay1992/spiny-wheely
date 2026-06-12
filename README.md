@@ -34,44 +34,42 @@ flowchart TB
   WS --> RD
 ```
 
+Full diagrams: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
 
-
-Full diagrams (sequence flows, module map, scaling): **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
-
-
-| Package       | Docs                                     |
-| ------------- | ---------------------------------------- |
-| Backend API   | [backend/README.md](backend/README.md)   |
+| Package | Docs |
+|---------|------|
+| Backend API | [backend/README.md](backend/README.md) |
 | Player client | [frontend/README.md](frontend/README.md) |
-| Tests         | [tests/README.md](tests/README.md)       |
-| Scaling / K8s | [deploy/SCALING.md](deploy/SCALING.md)   |
-
+| Tests | [tests/README.md](tests/README.md) |
+| Scaling / K8s | [deploy/SCALING.md](deploy/SCALING.md) |
+| Fly.io (production) | [deploy/fly/README.md](deploy/fly/README.md) |
 
 ## Repository layout
 
 ```
 spiny-wheely/
-├── backend/              # @spiny-wheely/backend — NestJS API
-├── frontend/             # @spiny-wheely/frontend — React + Vite
-├── tests/                # Unit, API, e2e, load tests
-├── docs/                 # Architecture diagrams
-├── deploy/               # Docker nginx, K8s manifests, deploy scripts
-├── docker-compose.yml    # PostgreSQL + Redis
-└── docker-compose.scale.yml  # Multi-instance API POC
+├── backend/                 # NestJS API
+├── frontend/                # React + Vite
+├── tests/                   # Unit, API, e2e, load
+├── docs/                    # Architecture
+├── deploy/fly/              # Fly.io production deploy
+├── deploy/kubernetes/       # K8s manifests (horizontal scaling)
+├── docker-compose.yml       # Local Postgres + Redis
+└── docker-compose.scale.yml   # Multi-instance API POC
 ```
 
 ## Prerequisites
 
 - **Node.js** ≥ 20
-- **Docker** (for PostgreSQL on `localhost:5433` and Redis on `localhost:6379`)
+- **Docker** — Postgres on `localhost:5433`, Redis on `localhost:6379`
 
-## Quick start
+## Quick start (local)
 
 ```bash
-docker compose up -d          # PostgreSQL + Redis
+docker compose up -d
 npm install
 cp backend/.env.example backend/.env
-npm run migration:run         # seed users, wallets, game config
+npm run migration:run
 npm run dev                   # API :3000 + client :5173
 ```
 
@@ -82,84 +80,52 @@ Open [http://localhost:5173/login](http://localhost:5173/login).
 | **Player** | `demo@spinywheely.test` | `player123` |
 | **Operator** | `admin@spinywheely.test` | `admin123` |
 
-> Admin credentials only work on the **Operator** tab (not Player).
-
-### Verify your setup
+### Verify
 
 ```bash
-npm run build                 # compile backend + frontend
-npm run dev:api               # in a separate terminal, if not already running
-npm run test                  # 42 tests when API is up (19 unit-only if API is down)
+npm run build
+npm run test                  # 68 tests — boots API via Docker if needed
 curl http://localhost:3000/health
+curl http://localhost:3000/health/ready   # database + redis
 ```
 
-**Docker already running?** If `docker compose up` fails with a container name conflict, Postgres/Redis are already up on ports `5433` / `6379` — skip that step and run migrations.
-
-**Port 3000 in use?** Stop the other process or change `PORT` in `backend/.env`.
-
-
-| Service  | URL                                            |
-| -------- | ---------------------------------------------- |
-| Client   | [http://localhost:5173](http://localhost:5173) |
-| API      | [http://localhost:3000](http://localhost:3000) |
-| Wheel WS | ws://localhost:3000/wheel                      |
-
+| Service | URL |
+|---------|-----|
+| Client | http://localhost:5173 |
+| API | http://localhost:3000 |
+| Wheel WS | ws://localhost:3000/wheel |
 
 ## Test accounts
 
-Seeded by migrations (`npm run migration:run`) in **development and production**.
+Seeded by migrations (`npm run migration:run`):
 
-
-| Role        | Email                     | Password    | Starting balance |
-| ----------- | ------------------------- | ----------- | ---------------- |
-| Player      | `player@spinywheely.test` | `player123` | **$5,000**       |
-| Demo player | `demo@spinywheely.test`   | `player123` | **$5,000**       |
-| Operator    | `admin@spinywheely.test`  | `admin123`  | —                |
-
-
-> For a real production deployment, rotate or remove demo credentials after go-live.
+| Role | Email | Password | Balance |
+|------|-------|----------|---------|
+| Player | `player@spinywheely.test` | `player123` | $5,000 |
+| Demo | `demo@spinywheely.test` | `player123` | $5,000 |
+| Operator | `admin@spinywheely.test` | `admin123` | — |
 
 ## Scripts
 
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Backend + frontend |
+| `npm run build` | Build both packages |
+| `npm run migration:run` | Database migrations |
+| `npm run test` | Full test suite (68 tests) |
+| `npm run test:unit` | Unit tests only (45 tests) |
+| `npm run test:load:heavy` | Load / stress test |
+| `npm run scale:up` | 3 API replicas + nginx on :8080 |
+| `npm run k8s:deploy` | Deploy to Kubernetes |
 
-| Command                   | Description                     |
-| ------------------------- | ------------------------------- |
-| `npm run dev`             | Backend + frontend              |
-| `npm run build`           | Build both packages             |
-| `npm run migration:run`   | Database migrations             |
-| `npm run test`            | Full test suite                 |
-| `npm run test:load:heavy` | Load / stress test              |
-| `npm run scale:up`        | 3 API replicas + nginx on :8080 |
-| `npm run k8s:deploy`      | Deploy to Kubernetes            |
+## Deploy
 
-
-## Deploy on Fly.io (live demo, no Redis)
-
-Single URL for UI + API — good for interview walkthroughs. See **[deploy/fly/README.md](deploy/fly/README.md)**.
+Production runs on **Fly.io** (Postgres + Redis + API + web in one machine):
 
 ```bash
-fly postgres create --name spinywheely-db --region iad
-fly postgres attach spinywheely-db --app spinywheely
-fly secrets set --app spinywheely JWT_SECRET="$(openssl rand -hex 32)"
-fly deploy --config deploy/fly/fly.toml
+bash deploy/fly/setup.sh
 ```
 
-## Deploy: Vercel + Render + Upstash (recommended for live demo)
+Live app: **https://spinywheely.fly.dev**
 
-| Layer | Provider |
-| ----- | -------- |
-| Frontend | [Vercel](https://vercel.com) (`vercel.json` at repo root) |
-| API + Postgres | [Render](https://render.com) (`render.yaml` blueprint) |
-| Redis | [Upstash](https://upstash.com) (`REDIS_URL` on Render) |
-
-Full wiring guide: **[deploy/split-stack/README.md](deploy/split-stack/README.md)**
-
-```text
-1. Upstash  → create Redis → copy rediss:// URL
-2. Render   → Blueprint (render.yaml) → set REDIS_URL env on API
-3. Vercel   → import repo → VITE_API_URL=https://your-api.onrender.com
-```
-
-Demo logins: [test accounts](#test-accounts) below.
-
-
+For horizontal scaling beyond one machine, see **[deploy/SCALING.md](deploy/SCALING.md)** (Docker Compose POC + Kubernetes manifests).

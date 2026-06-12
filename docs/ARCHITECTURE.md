@@ -127,9 +127,15 @@ sequenceDiagram
 
 ## Multi-instance scaling
 
-When running multiple API replicas (Docker Compose scale or Kubernetes), WebSocket rooms are synchronized via the **Socket.IO Redis adapter**. HTTP traffic is load-balanced; each replica shares Postgres and Redis.
+When running multiple API replicas (Docker Compose scale or Kubernetes), WebSocket rooms are synchronized via the **Socket.IO Redis adapter**. HTTP traffic is load-balanced; each replica shares Postgres and **one Redis** instance.
 
-See [deploy/SCALING.md](../deploy/SCALING.md) for deployment details.
+| Deploy path | Redis |
+|-------------|-------|
+| Local `docker compose` | `redis:7-alpine` on `:6379` |
+| Fly.io (production) | Redis process in [deploy/fly/Dockerfile](../deploy/fly/Dockerfile) (`REDIS_HOST=127.0.0.1`) |
+| Kubernetes (scale-out) | [deploy/kubernetes/redis.yaml](../deploy/kubernetes/redis.yaml) |
+
+See [deploy/SCALING.md](../deploy/SCALING.md) for horizontal scaling details.
 
 ## Key design decisions
 
