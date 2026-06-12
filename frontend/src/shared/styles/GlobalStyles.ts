@@ -32,5 +32,14 @@ export const GlobalStyle = createGlobalStyle`
   button {
     font-family: 'Inter', sans-serif;
   }
+
+  body > canvas {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    pointer-events: none !important;
+    z-index: 99999 !important;
+  }
 `;
 

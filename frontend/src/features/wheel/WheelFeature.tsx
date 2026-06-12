@@ -5,6 +5,8 @@ import { FeatureContainer, Title } from './components/WheelStyles';
 import { getPlayerProfile } from '../../core/network/api';
 import { usePlayerStore } from '../../core/store/playerStore';
 import { wheelSocket } from '../../core/network/socket';
+import { celebrateWin } from '../../shared/utils/celebrate-win';
+import { WinCelebration } from './components/WinCelebration';
 import {
   formatWagerError,
   validateWager,
@@ -49,8 +51,13 @@ export const WheelFeature: React.FC = () => {
   const [roundStatus, setRoundStatus] = useState<string>('Ready to spin');
   const [statusIsError, setStatusIsError] = useState(false);
   const [isTurbo, setIsTurbo] = useState<boolean>(false);
+  const [winPayout, setWinPayout] = useState<number | null>(null);
+  const [statusIsWin, setStatusIsWin] = useState(false);
 
   const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const winCelebrationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const animationTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const clearAnimationTimeouts = () => {
@@ -113,6 +120,9 @@ export const WheelFeature: React.FC = () => {
     return elapsed;
   };
 
+  const isNetWin = (result: SpinResult): boolean =>
+    result.payoutAmount > result.wagerAmount;
+
   const formatResultStatus = (result: SpinResult): string => {
     const pathSummary = result.path.map((step) => step.label).join(' → ');
 
@@ -120,7 +130,17 @@ export const WheelFeature: React.FC = () => {
       return `${pathSummary} — lost $${result.wagerAmount.toFixed(2)} (balance $${result.balance.toFixed(2)})`;
     }
 
-    return `${pathSummary} — won $${result.payoutAmount.toFixed(2)} (balance $${result.balance.toFixed(2)})`;
+    if (isNetWin(result)) {
+      const profit = result.payoutAmount - result.wagerAmount;
+      return `${pathSummary} — won $${profit.toFixed(2)} (balance $${result.balance.toFixed(2)})`;
+    }
+
+    if (result.payoutAmount < result.wagerAmount) {
+      const netLoss = result.wagerAmount - result.payoutAmount;
+      return `${pathSummary} — lost $${netLoss.toFixed(2)} (balance $${result.balance.toFixed(2)})`;
+    }
+
+    return `${pathSummary} — broke even (balance $${result.balance.toFixed(2)})`;
   };
 
   const handleSpin = async () => {
@@ -137,10 +157,16 @@ export const WheelFeature: React.FC = () => {
       clearTimeout(resetTimeoutRef.current);
       resetTimeoutRef.current = null;
     }
+    if (winCelebrationTimeoutRef.current) {
+      clearTimeout(winCelebrationTimeoutRef.current);
+      winCelebrationTimeoutRef.current = null;
+    }
     clearAnimationTimeouts();
 
     startRound();
     setStatusIsError(false);
+    setStatusIsWin(false);
+    setWinPayout(null);
     setRoundStatus('Spinning...');
     setActiveWheel('small');
 
@@ -150,12 +176,24 @@ export const WheelFeature: React.FC = () => {
 
       schedule(() => {
         resolveRound(result);
+        const isWin = isNetWin(result);
+        if (isWin) {
+          const netProfit = result.payoutAmount - result.wagerAmount;
+          celebrateWin(result.payoutAmount, result.wagerAmount);
+          setWinPayout(netProfit);
+          winCelebrationTimeoutRef.current = setTimeout(() => {
+            setWinPayout(null);
+            winCelebrationTimeoutRef.current = null;
+          }, 3000);
+        }
         setStatusIsError(false);
+        setStatusIsWin(isWin);
         setRoundStatus(formatResultStatus(result));
 
         resetTimeoutRef.current = setTimeout(() => {
           setActiveWheel('small');
           setStatusIsError(false);
+          setStatusIsWin(false);
           setRoundStatus('Ready to spin');
         }, 3000);
       }, totalAnimationMs);
@@ -179,6 +217,7 @@ export const WheelFeature: React.FC = () => {
 
   return (
     <FeatureContainer>
+      {winPayout !== null ? <WinCelebration netProfit={winPayout} /> : null}
       <Title>spinyWheely</Title>
       <WheelContainer
         innerRotation={innerRotation}
@@ -193,6 +232,7 @@ export const WheelFeature: React.FC = () => {
         isRoundActive={isRoundActive}
         roundStatus={roundStatus}
         statusIsError={statusIsError}
+        statusIsWin={statusIsWin}
         balance={balance}
         wagerAmount={wagerAmount}
         onSetWager={setWager}

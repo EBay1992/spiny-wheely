@@ -22,6 +22,7 @@ interface BetPanelProps {
   isRoundActive: boolean;
   roundStatus: string;
   statusIsError: boolean;
+  statusIsWin: boolean;
   balance: number;
   wagerAmount: number;
   onSetWager: (amount: number) => void;
@@ -36,6 +37,7 @@ export const BetPanel: React.FC<BetPanelProps> = ({
   isRoundActive,
   roundStatus,
   statusIsError,
+  statusIsWin,
   balance,
   wagerAmount,
   onSetWager,
@@ -109,7 +111,9 @@ export const BetPanel: React.FC<BetPanelProps> = ({
       <SpinButton type="button" onClick={onSpin} disabled={!canSpin}>
         {isRoundActive ? 'SPINNING...' : 'SPIN'}
       </SpinButton>
-      <StatusText $isError={statusIsError}>{roundStatus}</StatusText>
+      <StatusText $isError={statusIsError} $isWin={statusIsWin}>
+        {roundStatus}
+      </StatusText>
     </ControlsContainer>
   );
 };

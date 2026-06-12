@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 export const FeatureContainer = styled.div`
   display: flex;
@@ -91,35 +91,54 @@ export const WheelGlow = styled.div<{ $isSpinning?: boolean }>`
     $isSpinning ? 'wheelAuraSpin 1.2s ease-in-out infinite' : 'wheelAuraIdle 4s ease-in-out infinite'};
 `;
 
-interface WheelLayerProps {
+/** Fixed center anchor — inset + auto margins, no rotate/scale here. */
+export const WheelLayerAnchor = styled.div<{
   $size: string;
   $zIndex: number;
+  $interactive?: boolean;
+}>`
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: ${({ $size }) => $size};
+  height: ${({ $size }) => $size};
+  z-index: ${({ $zIndex }) => $zIndex};
+  pointer-events: ${({ $interactive }) => ($interactive ? 'auto' : 'none')};
+`;
+
+/** Spin only — long easing matches wheel deceleration. */
+export const WheelLayerSpin = styled.div<{
   $rotation: number;
   $transitionTime: number;
-  $isActive?: boolean;
   $isSpinning?: boolean;
-}
+}>`
+  width: 100%;
+  height: 100%;
+  transform: rotate(${({ $rotation }) => $rotation}deg);
+  transform-origin: center center;
+  transition: transform ${({ $transitionTime }) => $transitionTime}s
+    cubic-bezier(0.08, 0.82, 0.12, 1);
+  will-change: ${({ $isSpinning }) => ($isSpinning ? 'transform' : 'auto')};
+`;
 
-export const WheelLayer = styled.img<WheelLayerProps>`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: ${props => props.$size};
-  height: ${props => props.$size};
-  z-index: ${props => props.$zIndex};
-  transform: translate(-50%, -50%) rotate(${props => props.$rotation}deg)
-    scale(${props => (props.$isActive ? 1.03 : 1)});
+/** Thrust highlight — short scale synced across all rings. */
+export const WheelLayerImage = styled.img<{ $isActive?: boolean }>`
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  transform: scale(${({ $isActive }) => ($isActive ? 1.03 : 1)});
+  transform-origin: center center;
   transition:
-    transform ${props => props.$transitionTime}s cubic-bezier(0.08, 0.82, 0.12, 1),
+    transform 0.85s cubic-bezier(0.34, 1.45, 0.64, 1),
     filter 0.45s ease,
     opacity 0.45s ease;
   filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.5))
     drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35))
-    brightness(${props => (props.$isActive ? 1.12 : 0.9)})
-    saturate(${props => (props.$isActive ? 1.15 : 1)});
-  opacity: ${props => (props.$isActive ? 1 : 0.88)};
-  will-change: ${props => (props.$isSpinning ? 'transform' : 'auto')};
-  pointer-events: none;
+    brightness(${({ $isActive }) => ($isActive ? 1.12 : 0.9)})
+    saturate(${({ $isActive }) => ($isActive ? 1.15 : 1)});
+  opacity: ${({ $isActive }) => ($isActive ? 1 : 0.88)};
   user-select: none;
 `;
 
@@ -198,7 +217,16 @@ export const SpinButton = styled.button`
   }
 `;
 
-export const StatusText = styled.p<{ $isError?: boolean }>`
+const winPulse = keyframes`
+  0%, 100% {
+    text-shadow: 0 0 12px rgba(134, 239, 172, 0.35);
+  }
+  50% {
+    text-shadow: 0 0 22px rgba(251, 191, 36, 0.65);
+  }
+`;
+
+export const StatusText = styled.p<{ $isError?: boolean; $isWin?: boolean }>`
   font-size: 0.9rem;
   font-weight: 500;
   text-align: center;
@@ -207,10 +235,13 @@ export const StatusText = styled.p<{ $isError?: boolean }>`
   min-height: 1.2rem;
   margin: 0;
   padding: 0 0.5rem;
-  color: ${({ $isError }) => ($isError ? '#fca5a5' : '#a5b4fc')};
-  letter-spacing: ${({ $isError }) => ($isError ? 'normal' : '1px')};
+  color: ${({ $isError, $isWin }) =>
+    $isError ? '#fca5a5' : $isWin ? '#86efac' : '#a5b4fc'};
+  letter-spacing: ${({ $isError, $isWin }) =>
+    $isError ? 'normal' : $isWin ? '0.06em' : '1px'};
   text-transform: ${({ $isError }) => ($isError ? 'none' : 'uppercase')};
-  opacity: ${({ $isError }) => ($isError ? 1 : 0.8)};
+  opacity: ${({ $isError, $isWin }) => ($isError || $isWin ? 1 : 0.8)};
+  animation: ${({ $isWin }) => ($isWin ? winPulse : 'none')} 1.4s ease-in-out infinite;
 `;
 
 export const GamePanel = styled.div`
