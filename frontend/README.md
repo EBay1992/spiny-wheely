@@ -7,30 +7,22 @@ React player client for the spinyWheely wheel game. Presentation and animation o
 | Layer | Technology |
 |-------|------------|
 | UI | React 19 |
-| Build | Vite 6 |
+| Build | Vite |
 | State | Zustand |
 | Styling | styled-components |
 | Real-time | socket.io-client |
 
 ## Quick start
 
-From the **monorepo root** (starts API + client):
-
 ```bash
 docker compose up -d
 npm install
 cp backend/.env.example backend/.env
 npm run migration:run
-npm run dev
+npm run dev              # API + client from repo root
 ```
 
-Frontend only:
-
-```bash
-npm run dev:web
-```
-
-Client: http://localhost:5173
+Frontend only: `npm run dev:web` → http://localhost:5173
 
 ## Routes
 
@@ -38,110 +30,59 @@ Client: http://localhost:5173
 |------|------|-------------|
 | `/login` | — | Player or operator sign-in |
 | `/play` | Player | Wheel game |
-| `/dashboard` | Player | Account, game info, preferences, wager history |
-| `/admin` | Operator | Platform metrics and game configuration |
+| `/dashboard` | Player | Account, game info, wager history |
+| `/admin` | Operator | Metrics and game configuration |
 
 ## Environment
 
-Copy `.env.example` → `.env` in this directory.
+See [`.env.example`](.env.example).
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `VITE_API_URL` | *(empty in dev)* | API base URL; empty = Vite proxy to `:3000` |
-| `VITE_PLAYER_EMAIL` | `player@spinywheely.test` | Dev auto-login email |
-| `VITE_PLAYER_PASSWORD` | `player123` | Dev auto-login password |
+| Variable | When | Description |
+|----------|------|-------------|
+| `VITE_API_URL` | Cross-origin only | API origin (e.g. `https://spinywheely.fly.dev`) |
+| `VITE_USE_REMOTE_API` | Local dev only | Set `true` to use `VITE_API_URL` instead of Vite proxy |
 
-In production, set `VITE_API_URL` to the public API origin (e.g. `https://api.example.com`).
+| Environment | `VITE_API_URL` | Result |
+|-------------|----------------|--------|
+| `npm run dev` | empty | Vite proxy → `localhost:3000` |
+| `npm run dev` + `VITE_USE_REMOTE_API=true` | remote URL | Hits remote API (e.g. Fly) |
+| Fly production | empty | Same origin — nginx proxies API |
 
 ## Project layout
 
 ```
 src/
-├── features/wheel/
-│   ├── WheelFeature.tsx      # Main game screen, tier animations
-│   ├── components/
-│   │   ├── BetPanel.tsx      # Wager input + spin button
-│   │   └── WheelContainer.tsx
-│   └── types.ts              # SpinResult, WheelTier
-├── core/
-│   ├── network/
-│   │   ├── api.ts            # REST — login, profile
-│   │   ├── socket.ts         # WheelSocketClient
-│   │   └── config.ts         # API / WS URL resolution
-│   └── store/
-│       └── playerStore.ts    # balance, wager, round state
-├── shared/styles/
-├── assets/                   # Wheel ring images, backgrounds
-├── app/AppRouter.tsx         # Routes and auth guards
-├── features/auth/            # Login page
-├── features/player/          # Player dashboard
-├── features/admin/           # Operator console
-├── App.tsx
-└── main.tsx
+├── features/wheel/       # Wheel UI, bet panel, animations
+├── features/auth/        # Login
+├── features/player/      # Dashboard
+├── features/admin/       # Operator console
+├── features/errors/      # 404, unauthorized, error boundary
+├── core/network/         # api.ts, socket.ts, config.ts
+├── core/store/           # playerStore (Zustand)
+└── shared/               # Styles, wager validation utils
 ```
 
-## How it connects to the backend
+## How it connects
 
 ### Development
 
-Vite proxies API traffic to `http://127.0.0.1:3000` (`vite.config.ts`):
-
-- `/health`, `/player/*`, `/admin/*` → REST
-- `/socket.io` → WebSocket upgrade
-
-Wheel socket URL resolves to `/wheel` (same origin through the proxy).
+Vite proxies (`vite.config.ts`): `/health`, `/player/*`, `/admin/auth|metrics|games`, `/socket.io` → `localhost:3000`. Wheel socket URL: `/wheel`.
 
 ### Production
 
-`VITE_API_URL` points both REST (`api.ts`) and Socket.IO (`socket.ts`) at the API host.
-
-## Player flow
-
-```mermaid
-sequenceDiagram
-  participant App
-  participant API as REST /player
-  participant WS as WS /wheel
-  participant UI as WheelFeature
-
-  App->>API: GET /health
-  App->>API: POST /player/auth/login
-  App->>API: GET /player/profile
-  App->>WS: connect(JWT)
-  UI->>WS: wheel:spin { wagerAmount }
-  WS-->>UI: wheel:result
-  Note over UI: Animate tiers sequentially
-  UI->>UI: resolveRound() → update balance
-```
-
-### Balance UX rules
-
-- Balance updates in **`resolveRound()`** when the animation finishes — not when the socket message arrives.
-- Spin button re-enables after animation via **`failRound()`** / **`resolveRound()`**.
-- `isRoundActive` blocks duplicate spins during animation.
-
-## WebSocket events
-
-Uses `WheelSocketClient` (`core/network/socket.ts`):
-
-| Outbound | Inbound |
-|----------|---------|
-| `wheel:spin` | `wheel:result` |
-| `wheel:preview` | `wheel:preview` |
-| | `wheel:error` |
+`getApiUrl()` in `core/network/config.ts` resolves REST and WebSocket targets. Empty string = same origin (Fly or nginx).
 
 ## Scripts
 
 ```bash
-npm run dev      # Vite dev server :5173
-npm run build    # Production bundle → dist/
-npm run preview  # Preview production build
-npm run lint     # ESLint
+npm run dev      # :5173
+npm run build    # → dist/
+npm run preview
+npm run lint
 ```
 
-From monorepo root: `npm run dev:web`, `npm run build:web`.
+Production build is bundled into `deploy/fly/Dockerfile` (API + static UI in one image).
 
 ## Architecture
 
-System-wide diagrams: [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).  
-Backend API reference: [backend/README.md](../backend/README.md).
+[docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) · [backend/README.md](../backend/README.md)

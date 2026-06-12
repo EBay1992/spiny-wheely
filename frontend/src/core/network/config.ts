@@ -12,8 +12,7 @@ export interface ApiUrlEnv {
  * |-------------|--------------|--------|
  * | `npm run dev` | (empty) | `''` → Vite proxy → localhost:3000 |
  * | `npm run dev` | set + VITE_USE_REMOTE_API=true | remote URL |
- * | Vercel build | https://api.onrender.com | that URL |
- * | Fly / nginx | (empty) | `''` → same origin |
+ * | Fly production | (empty) | `''` → same origin |
  */
 export function resolveApiUrl(env: ApiUrlEnv): string {
   if (env.dev && env.useRemoteApiInDev !== true) {
@@ -37,7 +36,7 @@ export function getApiUrl(): string {
   });
 }
 
-/** True when the UI talks to an API on a different origin (e.g. Vercel → Render). */
+/** True when the UI talks to an API on a different origin. */
 export function isCrossOriginApi(): boolean {
   return getApiUrl().length > 0;
 }
