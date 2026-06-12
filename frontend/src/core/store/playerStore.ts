@@ -78,6 +78,7 @@ export const usePlayerStore = create<PlayerState>((set) => ({
       return {
         isRoundActive: true,
         lastRound: null,
+        balance: parseFloat((state.balance - state.wagerAmount).toFixed(2)),
       };
     }),
 
@@ -89,5 +90,9 @@ export const usePlayerStore = create<PlayerState>((set) => ({
       lastRound: result,
     }),
 
-  failRound: () => set({ isRoundActive: false }),
+  failRound: () =>
+    set((state) => ({
+      isRoundActive: false,
+      balance: parseFloat((state.balance + state.wagerAmount).toFixed(2)),
+    })),
 }));
