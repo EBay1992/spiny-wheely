@@ -1,24 +1,29 @@
-import { useEffect, useState } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { checkApiHealth } from '../core/network/api';
-import { useAuthStore } from '../core/store/authStore';
-import { AdminDashboard } from '../features/admin/AdminDashboard';
-import { LoginPage } from '../features/auth/LoginPage';
-import { PlayerDashboard } from '../features/player/PlayerDashboard';
-import { PlayPage } from '../features/wheel/PlayPage';
+import { useEffect, useState } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { checkApiHealth } from "../core/network/api";
+import { useAuthStore } from "../core/store/authStore";
+import { AdminDashboard } from "../features/admin/AdminDashboard";
+import { WheelSimulatorPage } from "../features/admin/WheelSimulatorPage";
+import { LoginPage } from "../features/auth/LoginPage";
+import { PlayerDashboard } from "../features/player/PlayerDashboard";
+import { PlayPage } from "../features/wheel/PlayPage";
 
 function ProtectedRoute({
   children,
   role,
 }: {
   children: React.ReactNode;
-  role: 'player' | 'admin';
+  role: "player" | "admin";
 }) {
   const currentRole = useAuthStore((s) => s.role);
   const isHydrated = useAuthStore((s) => s.isHydrated);
 
   if (!isHydrated) {
-    return <p style={{ color: '#fff', textAlign: 'center', padding: '2rem' }}>Loading…</p>;
+    return (
+      <p style={{ color: "#fff", textAlign: "center", padding: "2rem" }}>
+        Loading…
+      </p>
+    );
   }
 
   if (currentRole !== role) {
@@ -33,11 +38,15 @@ function HomeRedirect() {
   const isHydrated = useAuthStore((s) => s.isHydrated);
 
   if (!isHydrated) {
-    return <p style={{ color: '#fff', textAlign: 'center', padding: '2rem' }}>Loading…</p>;
+    return (
+      <p style={{ color: "#fff", textAlign: "center", padding: "2rem" }}>
+        Loading…
+      </p>
+    );
   }
 
-  if (role === 'player') return <Navigate to="/play" replace />;
-  if (role === 'admin') return <Navigate to="/admin" replace />;
+  if (role === "player") return <Navigate to="/play" replace />;
+  if (role === "admin") return <Navigate to="/admin" replace />;
   return <Navigate to="/login" replace />;
 }
 
@@ -52,7 +61,7 @@ export function AppRouter() {
 
   if (apiDown) {
     return (
-      <p style={{ color: '#ff6b6b', textAlign: 'center', padding: '2rem' }}>
+      <p style={{ color: "#ff6b6b", textAlign: "center", padding: "2rem" }}>
         API not reachable — run: docker compose up -d && npm run dev
       </p>
     );
@@ -84,6 +93,14 @@ export function AppRouter() {
           element={
             <ProtectedRoute role="admin">
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/simulator"
+          element={
+            <ProtectedRoute role="admin">
+              <WheelSimulatorPage />
             </ProtectedRoute>
           }
         />

@@ -67,6 +67,58 @@ export interface UpdateGameConfigPayload {
   isLive?: boolean;
 }
 
+export interface WheelSimulatePayload {
+  wagerAmount: number;
+  smallRotation: number;
+  middleRotation: number;
+  bigRotation: number;
+}
+
+export interface WheelSimulateSelectedSegment {
+  index: number;
+  label: string;
+  type: 'multiplier' | 'next_wheel';
+  multiplier: number;
+  pointerAngle: number;
+  rotation: number;
+}
+
+export interface WheelSimulateResult {
+  testRunId: string;
+  path: Array<{
+    wheel: 'small' | 'middle' | 'big';
+    segmentIndex: number;
+    label: string;
+    stopAngle: number;
+    type: 'multiplier' | 'next_wheel';
+  }>;
+  label: string;
+  multiplier: number;
+  wagerAmount: string;
+  payoutAmount: string;
+  netResult: string;
+  selectedSegments: {
+    small: WheelSimulateSelectedSegment;
+    middle?: WheelSimulateSelectedSegment;
+    big?: WheelSimulateSelectedSegment;
+  };
+}
+
+export interface WheelPreviewResponse {
+  minWager: number;
+  maxWager: number;
+  wheels: Array<{
+    wheel: 'small' | 'middle' | 'big';
+    segments: Array<{
+      index: number;
+      label: string;
+      multiplier: number;
+      stopAngle: number;
+      type: 'multiplier' | 'next_wheel';
+    }>;
+  }>;
+}
+
 let playerToken: string | null = null;
 let adminToken: string | null = null;
 
@@ -87,15 +139,36 @@ export function getPlayerToken(): string | null {
   return playerToken;
 }
 
+function toHeaderRecord(headers: HeadersInit | undefined): Record<string, string> {
+  const result: Record<string, string> = { 'Content-Type': 'application/json' };
+
+  if (!headers) {
+    return result;
+  }
+
+  if (headers instanceof Headers) {
+    headers.forEach((value, key) => {
+      result[key] = value;
+    });
+    return result;
+  }
+
+  if (Array.isArray(headers)) {
+    for (const [key, value] of headers) {
+      result[key] = value;
+    }
+    return result;
+  }
+
+  return { ...result, ...headers };
+}
+
 async function request<T>(
   path: string,
   options: RequestInit = {},
   token?: string | null,
 ): Promise<T> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
-  };
+  const headers = toHeaderRecord(options.headers);
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -116,7 +189,7 @@ async function request<T>(
     );
   }
 
-  return response.json() as Promise<T>;
+  return response.json();
 }
 
 function playerRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -184,6 +257,19 @@ export async function updateGameConfiguration(
 ): Promise<GameConfig> {
   return adminRequest<GameConfig>(`/admin/games/config/${id}`, {
     method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getWheelPreview(): Promise<WheelPreviewResponse> {
+  return adminRequest<WheelPreviewResponse>('/admin/wheel/preview');
+}
+
+export async function simulateWheel(
+  payload: WheelSimulatePayload,
+): Promise<WheelSimulateResult> {
+  return adminRequest<WheelSimulateResult>('/admin/wheel/simulate', {
+    method: 'POST',
     body: JSON.stringify(payload),
   });
 }
